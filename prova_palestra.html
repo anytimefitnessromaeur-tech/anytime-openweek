@@ -80,6 +80,7 @@
   .btn-submit:active { transform: scale(0.98); }
   .btn-submit:disabled { background: var(--g200); color: var(--g400); cursor: not-allowed; }
   .loading { display: none; text-align: center; padding: 12px; font-size: 13px; color: var(--p600); }
+  .error-box { display:none; margin-top:12px; padding:12px 14px; border-radius:10px; background:#FEF2F2; border:1px solid #FECACA; color:#991B1B; font-size:13px; line-height:1.5; }
   .success-screen { display: none; text-align: center; padding: 16px 0; }
   .success-icon { width: 60px; height: 60px; border-radius: 50%; background: #D1FAE5; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; }
   .success-icon svg { width: 28px; height: 28px; }
@@ -138,6 +139,7 @@
       <div class="selected-slot empty" id="selectedSlotEl">
         <p>Seleziona prima un orario<br>dal calendario ↑</p>
       </div>
+
       <div class="field-row">
         <div class="field">
           <label>Nome</label>
@@ -150,6 +152,7 @@
           <span class="errmsg" id="e-cognome">Campo obbligatorio</span>
         </div>
       </div>
+
       <div class="field-row">
         <div class="field">
           <label>Email</label>
@@ -162,18 +165,22 @@
           <span class="errmsg" id="e-telefono">Campo obbligatorio</span>
         </div>
       </div>
+
       <div class="socio-row" onclick="toggleSocio()">
         <div class="checkbox" id="socioCheck"></div>
         <span class="socio-label-text">Vieni con un socio?</span>
       </div>
+
       <div id="socioField" style="display:none; margin-bottom:12px;">
         <div class="field">
           <label>Nome e cognome del socio <span class="opt">(facoltativo)</span></label>
           <input type="text" id="f-socio" placeholder="Es. Laura Bianchi">
         </div>
       </div>
+
       <button class="btn-submit" id="btnSubmit" onclick="submitBooking()">Prenota il tuo accesso</button>
       <div class="loading" id="loading">Invio in corso…</div>
+      <div class="error-box" id="errorBox"></div>
     </div>
 
     <div class="success-screen" id="successScreen">
@@ -202,29 +209,34 @@
   const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxAJ_yAR8WHA0NYZ4gne4uB4dvpJzrJauwp6gqT78AxhcuXeUtb_WganEilDjgfW5R0MA/exec';
   const SPOTS = 2;
   const HOURS = [10,11,12,13,14,15,16,17];
-
-  const days      = ['Lun 11','Mar 12','Mer 13','Gio 14','Ven 15','Sab 16'];
+  const days = ['Lun 11','Mar 12','Mer 13','Gio 14','Ven 15','Sab 16'];
   const dayLabels = ['Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato'];
-  const dayNums   = [11,12,13,14,15,16];
+  const dayNums = [11,12,13,14,15,16];
 
-  let currentDay    = days[0];
-  let selectedSlot  = null;
-  let socioOn       = false;
-  let bookings      = {};
-  let isLoadingCount = false;
+  let currentDay = days[0];
+  let selectedSlot = null;
+  let socioOn = false;
+  const bookings = {};
 
-  function initBookings() {
-    bookings = {};
-    days.forEach(d => {
-      bookings[d] = {};
-      HOURS.forEach(h => bookings[d][h] = 0);
-    });
-  }
-
-  initBookings();
+  days.forEach(d => {
+    bookings[d] = {};
+    HOURS.forEach(h => bookings[d][h] = 0);
+  });
 
   function slotLabel(h) {
-    return String(h).padStart(2,'0') + ':00 – ' + String(h + 1).padStart(2,'0') + ':00';
+    return String(h).padStart(2,'0') + ':00–' + String(h + 1).padStart(2,'0') + ':00';
+  }
+
+  function showError(message) {
+    const box = document.getElementById('errorBox');
+    box.textContent = message;
+    box.style.display = 'block';
+  }
+
+  function hideError() {
+    const box = document.getElementById('errorBox');
+    box.style.display = 'none';
+    box.textContent = '';
   }
 
   function scrollToForm() {
@@ -256,17 +268,16 @@
 
     HOURS.forEach(h => {
       const booked = bookings[currentDay][h] || 0;
-      const avail  = Math.max(0, SPOTS - booked);
+      const avail = SPOTS - booked;
       const isFull = avail <= 0;
-      const isLow  = avail === 1;
-      const isSel  = selectedSlot && selectedSlot.day === currentDay && selectedSlot.hour === h;
+      const isLow = avail === 1;
+      const isSel = selectedSlot && selectedSlot.day === currentDay && selectedSlot.hour === h;
 
       const card = document.createElement('div');
       card.className = 'slot-card' + (isSel ? ' selected' : '') + (isFull ? ' full' : '');
 
-      const pipsHtml = Array.from(
-        { length: SPOTS },
-        (_, i) => '<div class="pip' + (i < booked ? ' taken' + (isLow ? ' low' : '') : '') + '"></div>'
+      const pipsHtml = Array.from({length: SPOTS}, (_, i) =>
+        '<div class="pip' + (i < booked ? ' taken' + (isLow ? ' low' : '') : '') + '"></div>'
       ).join('');
 
       card.innerHTML =
@@ -297,7 +308,6 @@
 
   function updateSelectedSlot() {
     const el = document.getElementById('selectedSlotEl');
-
     if (!selectedSlot) {
       el.className = 'selected-slot empty';
       el.innerHTML = '<p>Seleziona prima un orario<br>dal calendario ↑</p>';
@@ -315,7 +325,6 @@
 
   function validate() {
     let ok = true;
-
     [
       { id: 'f-nome',     err: 'e-nome',     fn: v => v.trim().length > 0 },
       { id: 'f-cognome',  err: 'e-cognome',  fn: v => v.trim().length > 0 },
@@ -324,7 +333,6 @@
     ].forEach(r => {
       const inp = document.getElementById(r.id);
       const err = document.getElementById(r.err);
-
       if (!r.fn(inp.value)) {
         inp.classList.add('error');
         err.style.display = 'block';
@@ -334,43 +342,37 @@
         err.style.display = 'none';
       }
     });
-
     return ok;
   }
 
   async function caricaConteggi() {
-    if (isLoadingCount) return;
-    isLoadingCount = true;
-
     try {
       const resp = await fetch(APPS_SCRIPT_URL + '?action=counts', { cache: 'no-store' });
       const data = await resp.json();
 
-      if (!data.ok || !data.counts) {
-        throw new Error('Conteggi non validi');
-      }
+      if (!data.ok || !data.counts) throw new Error('Conteggi non validi');
 
-      initBookings();
+      const counts = data.counts;
 
       days.forEach(d => {
-        const idx   = days.indexOf(d);
+        const idx = days.indexOf(d);
         const label = dayLabels[idx] + ' ' + dayNums[idx] + ' maggio';
 
         HOURS.forEach(h => {
           const sheetKey = 'Prova libera in palestra|' + label + '|' + slotLabel(h);
-          bookings[d][h] = Number(data.counts[sheetKey] || 0);
+          bookings[d][h] = counts[sheetKey] || 0;
         });
       });
 
       renderSlots();
     } catch (e) {
-      console.log('Conteggi non disponibili:', e);
-    } finally {
-      isLoadingCount = false;
+      console.error('Conteggi non disponibili:', e);
     }
   }
 
   async function submitBooking() {
+    hideError();
+
     if (!selectedSlot) {
       document.getElementById('selectedSlotEl').style.borderColor = '#DC2626';
       if (window.innerWidth <= 720) window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -380,15 +382,94 @@
     if (!validate()) return;
 
     const data = {
-      tipo:     'prova_palestra',
-      nome:     document.getElementById('f-nome').value.trim(),
-      cognome:  document.getElementById('f-cognome').value.trim(),
-      email:    document.getElementById('f-email').value.trim(),
+      tipo: 'prova_palestra',
+      nome: document.getElementById('f-nome').value.trim(),
+      cognome: document.getElementById('f-cognome').value.trim(),
+      email: document.getElementById('f-email').value.trim(),
       telefono: document.getElementById('f-telefono').value.trim(),
-      socio:    socioOn ? (document.getElementById('f-socio').value.trim() || '') : '',
-      corso:    'Prova libera in palestra',
-      giorno:   selectedSlot.dayLabel + ' ' + selectedSlot.dayNum + ' maggio',
-      orario:   selectedSlot.label,
+      socio: socioOn ? (document.getElementById('f-socio').value.trim() || '') : '',
+      corso: 'Prova libera in palestra',
+      giorno: selectedSlot.dayLabel + ' ' + selectedSlot.dayNum + ' maggio',
+      orario: selectedSlot.label,
     };
 
-    const btn = document.getElement
+    const btn = document.getElementById('btnSubmit');
+    const loading = document.getElementById('loading');
+
+    btn.disabled = true;
+    loading.style.display = 'block';
+
+    try {
+      const resp = await fetch(APPS_SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(data),
+      });
+
+      const result = await resp.json();
+
+      loading.style.display = 'none';
+
+      if (!result.ok) {
+        btn.disabled = false;
+
+        if (result.error === 'POSTI_ESAURITI') {
+          showError('Posti esauriti per questa fascia oraria. Ho aggiornato le disponibilità.');
+          await caricaConteggi();
+          return;
+        }
+
+        showError('Errore durante la prenotazione: ' + (result.error || 'errore sconosciuto'));
+        return;
+      }
+
+      await caricaConteggi();
+
+      document.getElementById('formContent').style.display = 'none';
+      document.getElementById('fab').style.display = 'none';
+
+      const s = document.getElementById('successScreen');
+      s.style.display = 'block';
+
+      document.getElementById('successMsg').textContent =
+        data.nome + ', ti aspettiamo il ' + data.giorno +
+        ' dalle ' + data.orario + '. Controlla la tua email ' + data.email +
+        ' — ti manderemo un reminder prima dell\'accesso!';
+
+      renderSlots();
+
+    } catch (e) {
+      loading.style.display = 'none';
+      btn.disabled = false;
+      showError('Errore di rete o risposta non valida.');
+      console.error(e);
+    }
+  }
+
+  async function resetForm() {
+    document.getElementById('formContent').style.display = 'block';
+    document.getElementById('successScreen').style.display = 'none';
+    document.getElementById('fab').style.display = 'block';
+    document.getElementById('btnSubmit').disabled = false;
+    document.getElementById('loading').style.display = 'none';
+
+    ['f-nome','f-cognome','f-email','f-telefono','f-socio'].forEach(id => document.getElementById(id).value = '');
+
+    socioOn = false;
+    document.getElementById('socioCheck').className = 'checkbox';
+    document.getElementById('socioField').style.display = 'none';
+
+    selectedSlot = null;
+    hideError();
+    updateSelectedSlot();
+    await caricaConteggi();
+
+    if (window.innerWidth <= 720) window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  renderDays();
+  renderSlots();
+  caricaConteggi();
+</script>
+</body>
+</html>
