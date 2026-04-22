@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prova la Palestra — Anytime Fitness Roma EUR</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --p900: #3B0764; --p700: #6D28D9; --p600: #7C3AED;
+    --p500: #8B5CF6; --p400: #A78BFA; --p200: #DDD6FE; --p50: #F5F3FF;
+    --w: #fff; --g50: #F9FAFB; --g100: #F3F4F6; --g200: #E5E7EB;
+    --g400: #9CA3AF; --g600: #4B5563; --g800: #1F2937; --red: #DC2626;
+  }
+  body { font-family: 'DM Sans', sans-serif; background: var(--g50); color: var(--g800); }
+  .hero { background: var(--p900); position: relative; overflow: hidden; }
+  .hero::before { content: ''; position: absolute; inset: 0; background: repeating-linear-gradient(-45deg, transparent, transparent 40px, rgba(255,255,255,0.02) 40px, rgba(255,255,255,0.02) 41px); }
+  .hero-inner { position: relative; z-index: 1; max-width: 1100px; margin: 0 auto; padding: 24px 20px 22px; }
+  .hero-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .hero-logo { font-family: 'Syne', sans-serif; font-size: 10px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: var(--p400); }
+  .hero-badge-top { background: var(--p600); border: 1px solid var(--p500); color: #fff; font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 600; padding: 5px 12px; border-radius: 999px; }
+  .hero h1 { font-family: 'Syne', sans-serif; font-size: clamp(26px, 8vw, 50px); font-weight: 700; color: #fff; line-height: 1.05; letter-spacing: -0.5px; }
+  .hero h1 span { color: var(--p400); }
+  .hero-sub { font-size: 13px; color: var(--p200); font-weight: 300; line-height: 1.6; margin-top: 8px; max-width: 400px; }
+  .hero-chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+  .chip { background: rgba(167,139,250,0.15); border: 1px solid rgba(167,139,250,0.3); color: var(--p200); font-size: 11px; font-weight: 600; padding: 5px 12px; border-radius: 999px; }
+  .main { max-width: 1100px; margin: 0 auto; padding: 24px 16px 80px; display: grid; grid-template-columns: 1fr 380px; gap: 24px; align-items: start; }
+  .panel { background: var(--w); border-radius: 16px; border: 1px solid var(--g200); overflow: hidden; }
+  .panel-header { padding: 18px 20px 14px; border-bottom: 1px solid var(--g100); }
+  .panel-header h2 { font-family: 'Syne', sans-serif; font-size: 17px; font-weight: 700; }
+  .panel-header p { font-size: 12px; color: var(--g400); margin-top: 2px; }
+  .day-tabs { display: flex; overflow-x: auto; padding: 14px 16px 0; gap: 8px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+  .day-tabs::-webkit-scrollbar { display: none; }
+  .day-tab { flex-shrink: 0; min-width: 64px; padding: 10px 10px; border-radius: 12px; border: 1px solid var(--g200); background: transparent; cursor: pointer; text-align: center; transition: all 0.15s; -webkit-tap-highlight-color: transparent; }
+  .day-tab:active { transform: scale(0.95); }
+  .day-tab.active { background: var(--p700); border-color: var(--p700); }
+  .day-tab .dn { font-size: 9px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--g400); display: block; }
+  .day-tab .dd { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 700; color: var(--g800); line-height: 1.1; display: block; }
+  .day-tab .dm { font-size: 9px; color: var(--g400); display: block; }
+  .day-tab.active .dn, .day-tab.active .dd, .day-tab.active .dm { color: #fff; }
+  .day-tab.active .dn, .day-tab.active .dm { color: rgba(255,255,255,0.7); }
+  .slots-wrap { padding: 12px 16px 20px; }
+  .slots-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; }
+  .slot-card { border-radius: 14px; border: 1.5px solid var(--g200); padding: 14px 10px; cursor: pointer; transition: all 0.15s; text-align: center; background: var(--w); -webkit-tap-highlight-color: transparent; min-height: 80px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; }
+  .slot-card:active { transform: scale(0.96); }
+  .slot-card.selected { border-color: var(--p600); background: var(--p50); }
+  .slot-card.full { opacity: 0.4; cursor: not-allowed; }
+  .slot-time { font-family: 'Syne', sans-serif; font-size: 17px; font-weight: 700; color: var(--g800); }
+  .slot-avail { font-size: 12px; font-weight: 500; }
+  .slot-avail.ok { color: var(--p600); }
+  .slot-avail.low { color: var(--red); }
+  .slot-avail.zero { color: var(--g400); }
+  .slot-pip { display: flex; justify-content: center; gap: 5px; }
+  .pip { width: 8px; height: 8px; border-radius: 50%; background: var(--g200); }
+  .pip.taken { background: var(--p500); }
+  .pip.taken.low { background: var(--red); }
+  .form-panel { background: var(--w); border-radius: 16px; border: 1px solid var(--g200); padding: 24px 20px; position: sticky; top: 16px; }
+  .form-title { font-family: 'Syne', sans-serif; font-size: 17px; font-weight: 700; margin-bottom: 16px; }
+  .selected-slot { background: var(--p50); border: 1.5px solid var(--p200); border-radius: 12px; padding: 14px 16px; margin-bottom: 18px; min-height: 58px; }
+  .selected-slot.empty { border-style: dashed; display: flex; align-items: center; justify-content: center; }
+  .selected-slot.empty p { font-size: 13px; color: var(--p400); text-align: center; line-height: 1.6; }
+  .slot-name { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; color: #4C1D95; }
+  .slot-meta { font-size: 12px; color: var(--p600); margin-top: 3px; }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+  .field { display: flex; flex-direction: column; gap: 5px; }
+  label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: var(--g600); }
+  label .opt { font-weight: 400; text-transform: none; letter-spacing: 0; color: var(--g400); margin-left: 4px; }
+  input { border: 1.5px solid var(--g200); border-radius: 10px; padding: 12px 14px; font-size: 16px; font-family: 'DM Sans', sans-serif; color: var(--g800); outline: none; transition: border-color 0.15s, box-shadow 0.15s; background: var(--w); width: 100%; }
+  input:focus { border-color: var(--p500); box-shadow: 0 0 0 3px rgba(139,92,246,0.12); }
+  input.error { border-color: var(--red); }
+  .errmsg { font-size: 11px; color: var(--red); display: none; }
+  .socio-row { display: flex; align-items: center; gap: 12px; cursor: pointer; margin-bottom: 10px; padding: 13px 14px; border-radius: 10px; background: var(--g50); border: 1px solid var(--g200); user-select: none; -webkit-tap-highlight-color: transparent; }
+  .checkbox { width: 22px; height: 22px; border-radius: 6px; border: 1.5px solid var(--g200); flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+  .checkbox.on { background: var(--p600); border-color: var(--p600); }
+  .checkbox.on::after { content: ''; width: 5px; height: 9px; border: 2px solid #fff; border-top: none; border-left: none; transform: rotate(45deg) translateY(-1px); display: block; }
+  .socio-label-text { font-size: 14px; color: var(--g800); }
+  .btn-submit { width: 100%; margin-top: 8px; padding: 16px; background: var(--p700); color: #fff; border: none; border-radius: 12px; font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; cursor: pointer; transition: background 0.15s, transform 0.1s; -webkit-tap-highlight-color: transparent; }
+  .btn-submit:hover { background: var(--p600); }
+  .btn-submit:active { transform: scale(0.98); }
+  .btn-submit:disabled { background: var(--g200); color: var(--g400); cursor: not-allowed; }
+  .loading { display: none; text-align: center; padding: 12px; font-size: 13px; color: var(--p600); }
+  .success-screen { display: none; text-align: center; padding: 16px 0; }
+  .success-icon { width: 60px; height: 60px; border-radius: 50%; background: #D1FAE5; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; }
+  .success-icon svg { width: 28px; height: 28px; }
+  .success-screen h3 { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+  .success-screen p { font-size: 14px; color: var(--g600); line-height: 1.6; }
+  .btn-another { margin-top: 16px; padding: 14px 24px; border-radius: 10px; border: 1px solid #C4B5FD; background: transparent; color: var(--p600); font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; width: 100%; }
+  .fab { display: none; position: fixed; bottom: 0; left: 0; right: 0; z-index: 100; padding: 10px 16px 28px; background: linear-gradient(to top, var(--g50) 60%, transparent); pointer-events: none; }
+  .fab button { width: 100%; padding: 17px; background: var(--p700); color: #fff; border: none; border-radius: 14px; font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 20px rgba(109,40,217,0.35); pointer-events: all; }
+  footer { text-align: center; padding: 20px 16px 36px; font-size: 12px; color: var(--g400); }
+  @media (max-width: 720px) {
+    .main { grid-template-columns: 1fr; padding: 16px 12px 110px; gap: 14px; }
+    .panel { order: 1; }
+    .form-panel { order: 2; position: static; }
+    .field-row { grid-template-columns: 1fr; }
+    .fab { display: block; }
+    .slots-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  }
+  @media (min-width: 721px) and (max-width: 960px) {
+    .main { grid-template-columns: 1fr; padding: 20px 20px 60px; }
+    .form-panel { position: static; }
+  }
+</style>
+</head>
+<body>
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-top">
+      <div class="hero-logo">Anytime Fitness · Roma EUR</div>
+      <div class="hero-badge-top">11–16 Maggio</div>
+    </div>
+    <h1>Prova <span>la Palestra</span></h1>
+    <p class="hero-sub">Accesso libero agli attrezzi durante la Open Week. Solo 2 persone per fascia oraria.</p>
+    <div class="hero-chips">
+      <div class="chip">Ingresso gratuito</div>
+      <div class="chip">2 posti per ora</div>
+      <div class="chip">10:00 – 18:00</div>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+  <div class="panel">
+    <div class="panel-header">
+      <h2>Scegli giorno e orario</h2>
+      <p>Tocca una fascia oraria, poi compila il modulo</p>
+    </div>
+    <div class="day-tabs" id="dayTabs"></div>
+    <div class="slots-wrap">
+      <div class="slots-grid" id="slotsGrid"></div>
+    </div>
+  </div>
+
+  <div class="form-panel" id="formPanel">
+    <div id="formContent">
+      <div class="form-title">La tua prenotazione</div>
+      <div class="selected-slot empty" id="selectedSlotEl">
+        <p>Seleziona prima un orario<br>dal calendario ↑</p>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Nome</label>
+          <input type="text" id="f-nome" placeholder="Mario" autocomplete="given-name">
+          <span class="errmsg" id="e-nome">Campo obbligatorio</span>
+        </div>
+        <div class="field">
+          <label>Cognome</label>
+          <input type="text" id="f-cognome" placeholder="Rossi" autocomplete="family-name">
+          <span class="errmsg" id="e-cognome">Campo obbligatorio</span>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Email</label>
+          <input type="email" id="f-email" placeholder="mario@email.com" autocomplete="email" inputmode="email">
+          <span class="errmsg" id="e-email">Email non valida</span>
+        </div>
+        <div class="field">
+          <label>Telefono</label>
+          <input type="tel" id="f-telefono" placeholder="+39 333 000 0000" autocomplete="tel" inputmode="tel">
+          <span class="errmsg" id="e-telefono">Campo obbligatorio</span>
+        </div>
+      </div>
+      <div class="socio-row" onclick="toggleSocio()">
+        <div class="checkbox" id="socioCheck"></div>
+        <span class="socio-label-text">Vieni con un socio?</span>
+      </div>
+      <div id="socioField" style="display:none; margin-bottom:12px;">
+        <div class="field">
+          <label>Nome e cognome del socio <span class="opt">(facoltativo)</span></label>
+          <input type="text" id="f-socio" placeholder="Es. Laura Bianchi">
+        </div>
+      </div>
+      <button class="btn-submit" id="btnSubmit" onclick="submitBooking()">Prenota il tuo accesso</button>
+      <div class="loading" id="loading">Invio in corso…</div>
+    </div>
+    <div class="success-screen" id="successScreen">
+      <div class="success-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <h3>Accesso confermato!</h3>
+      <p id="successMsg"></p>
+      <div style="background:#FEF9C3;border:1px solid #FDE047;border-radius:10px;padding:12px 16px;margin:14px 0;text-align:left;">
+        <p style="font-size:13px;color:#854D0E;margin:0;line-height:1.6;">📬 <strong>Controlla la cartella spam</strong> — a volte le email automatiche finiscono lì. Se la trovi nello spam, spostala in arrivo e salva il mittente tra i contatti così riceverai anche i reminder!</p>
+      </div>
+      <button class="btn-another" onclick="resetForm()">Prenota un altro accesso</button>
+    </div>
+  </div>
+</div>
+
+<div class="fab" id="fab">
+  <button onclick="scrollToForm()">Prenota il tuo accesso →</button>
+</div>
+
+<footer>
+  Anytime Fitness Roma EUR · <a href="mailto:anytimefitnessromaeur@gmail.com" style="color:inherit">anytimefitnessromaeur@gmail.com</a>
+</footer>
+
+<script>
+  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxAJ_yAR8WHA0NYZ4gne4uB4dvpJzrJauwp6gqT78AxhcuXeUtb_WganEilDjgfW5R0MA/exec';
+  const SPOTS = 2;
+  const HOURS = [10,11,12,13,14,15,16,17];
+  const days      = ['Lun 11','Mar 12','Mer 13','Gio 14','Ven 15','Sab 16'];
+  const dayLabels = ['Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato'];
+  const dayNums   = [11,12,13,14,15,16];
+  let currentDay   = days[0];
+  let selectedSlot = null;
+  let socioOn = false;
+  const bookings = {};
+  days.forEach(d => { bookings[d] = {}; HOURS.forEach(h => bookings[d][h] = 0); });
+
+  function slotLabel(h) { return String(h).padStart(2,'0') + ':00 – ' + String(h+1).padStart(2,'0') + ':00'; }
+
+  function scrollToForm() {
+    document.getElementById('formPanel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function renderDays() {
+    const tabs = document.getElementById('dayTabs');
+    tabs.innerHTML = '';
+    days.forEach((d, i) => {
+      const t = document.createElement('div');
+      t.className = 'day-tab' + (d === currentDay ? ' active' : '');
+      t.innerHTML = '<span class="dn">' + dayLabels[i].slice(0,3) + '</span><span class="dd">' + dayNums[i] + '</span><span class="dm">mag</span>';
+      t.onclick = () => { currentDay = d; selectedSlot = null; updateSelectedSlot(); renderDays(); renderSlots(); };
+      tabs.appendChild(t);
+    });
+  }
+
+  function renderSlots() {
+    const grid = document.getElementById('slotsGrid');
+    grid.innerHTML = '';
+    HOURS.forEach(h => {
+      const booked = bookings[currentDay][h] || 0;
+      const avail  = SPOTS - booked;
+      const isFull = avail <= 0;
+      const isLow  = avail === 1;
+      const isSel  = selectedSlot && selectedSlot.day === currentDay && selectedSlot.hour === h;
+      const card = document.createElement('div');
+      card.className = 'slot-card' + (isSel ? ' selected' : '') + (isFull ? ' full' : '');
+      const pipsHtml = Array.from({length: SPOTS}, (_, i) => '<div class="pip' + (i < booked ? ' taken' + (isLow ? ' low' : '') : '') + '"></div>').join('');
+      card.innerHTML = '<div class="slot-time">' + String(h).padStart(2,'0') + ':00</div><div class="slot-avail ' + (isFull ? 'zero' : isLow ? 'low' : 'ok') + '">' + (isFull ? 'Esaurito' : avail === 1 ? '1 posto' : avail + ' posti') + '</div><div class="slot-pip">' + pipsHtml + '</div>';
+      if (!isFull) {
+        card.onclick = () => {
+          selectedSlot = { day: currentDay, hour: h, label: slotLabel(h), dayLabel: dayLabels[days.indexOf(currentDay)], dayNum: dayNums[days.indexOf(currentDay)] };
+          updateSelectedSlot();
+          renderSlots();
+          if (window.innerWidth <= 720) setTimeout(scrollToForm, 100);
+        };
+      }
+      grid.appendChild(card);
+    });
+  }
+
+  function updateSelectedSlot() {
+    const el = document.getElementById('selectedSlotEl');
+    if (!selectedSlot) {
+      el.className = 'selected-slot empty';
+      el.innerHTML = '<p>Seleziona prima un orario<br>dal calendario ↑</p>';
+    } else {
+      el.className = 'selected-slot';
+      el.innerHTML = '<div class="slot-name">Prova libera in palestra</div><div class="slot-meta">' + selectedSlot.dayLabel + ' ' + selectedSlot.dayNum + ' maggio · ' + selectedSlot.label + '</div>';
+    }
+  }
+
+  function toggleSocio() {
+    socioOn = !socioOn;
+    document.getElementById('socioCheck').className = 'checkbox' + (socioOn ? ' on' : '');
+    document.getElementById('socioField').style.display = socioOn ? 'block' : 'none';
+  }
+
+  function validate() {
+    let ok = true;
+    [
+      { id: 'f-nome',     err: 'e-nome',     fn: v => v.trim().length > 0 },
+      { id: 'f-cognome',  err: 'e-cognome',  fn: v => v.trim().length > 0 },
+      { id: 'f-email',    err: 'e-email',    fn: v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim()) },
+      { id: 'f-telefono', err: 'e-telefono', fn: v => v.trim().length > 0 },
+    ].forEach(r => {
+      const inp = document.getElementById(r.id);
+      const err = document.getElementById(r.err);
+      if (!r.fn(inp.value)) { inp.classList.add('error'); err.style.display = 'block'; ok = false; }
+      else { inp.classList.remove('error'); err.style.display = 'none'; }
+    });
+    return ok;
+  }
+
+  async function submitBooking() {
+    if (!selectedSlot) {
+      document.getElementById('selectedSlotEl').style.borderColor = '#DC2626';
+      if (window.innerWidth <= 720) window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+    if (!validate()) return;
+
+    const data = {
+      tipo:     'prova_palestra',
+      nome:     document.getElementById('f-nome').value.trim(),
+      cognome:  document.getElementById('f-cognome').value.trim(),
+      email:    document.getElementById('f-email').value.trim(),
+      telefono: document.getElementById('f-telefono').value.trim(),
+      socio:    socioOn ? (document.getElementById('f-socio').value.trim() || '') : '',
+      corso:    'Prova libera in palestra',
+      giorno:   selectedSlot.dayLabel + ' ' + selectedSlot.dayNum + ' maggio',
+      orario:   selectedSlot.label,
+    };
+
+    document.getElementById('btnSubmit').disabled = true;
+    document.getElementById('loading').style.display = 'block';
+
+    try {
+      await fetch(APPS_SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      document.getElementById('loading').style.display = 'none';
+    } catch(e) {
+      document.getElementById('loading').style.display = 'none';
+    }
+
+    bookings[selectedSlot.day][selectedSlot.hour] = (bookings[selectedSlot.day][selectedSlot.hour] || 0) + 1;
+    document.getElementById('formContent').style.display = 'none';
+    document.getElementById('fab').style.display = 'none';
+    const s = document.getElementById('successScreen');
+    s.style.display = 'block';
+    document.getElementById('successMsg').textContent = data.nome + ', ti aspettiamo il ' + data.giorno + ' dalle ' + data.orario + '. Controlla la tua email ' + data.email + ' — ti manderemo un reminder prima dell\'accesso!';
+    renderSlots();
+  }
+
+  function resetForm() {
+    document.getElementById('formContent').style.display = 'block';
+    document.getElementById('successScreen').style.display = 'none';
+    document.getElementById('fab').style.display = 'block';
+    document.getElementById('btnSubmit').disabled = false;
+    ['f-nome','f-cognome','f-email','f-telefono','f-socio'].forEach(id => document.getElementById(id).value = '');
+    socioOn = false;
+    document.getElementById('socioCheck').className = 'checkbox';
+    document.getElementById('socioField').style.display = 'none';
+    selectedSlot = null;
+    updateSelectedSlot();
+    renderSlots();
+    if (window.innerWidth <= 720) window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  renderDays();
+  renderSlots();
+</script>
+</body>
+</html>
