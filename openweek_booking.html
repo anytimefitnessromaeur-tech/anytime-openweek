@@ -85,6 +85,7 @@
   .btn-submit:active { transform: scale(0.98); }
   .btn-submit:disabled { background: var(--g200); color: var(--g400); cursor: not-allowed; }
   .loading { display: none; text-align: center; padding: 12px; font-size: 13px; color: var(--p600); }
+  .error-box { display:none; margin-top:12px; padding:12px 14px; border-radius:10px; background:#FEF2F2; border:1px solid #FECACA; color:#991B1B; font-size:13px; line-height:1.5; }
   .success-screen { display: none; text-align: center; padding: 16px 0; }
   .success-icon { width: 60px; height: 60px; border-radius: 50%; background: #D1FAE5; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; }
   .success-icon svg { width: 28px; height: 28px; }
@@ -143,6 +144,7 @@
       <div class="selected-corso empty" id="selectedCorso">
         <p>Seleziona prima un corso<br>dal calendario ↑</p>
       </div>
+
       <div class="field-row">
         <div class="field">
           <label>Nome</label>
@@ -155,6 +157,7 @@
           <span class="errmsg" id="e-cognome">Campo obbligatorio</span>
         </div>
       </div>
+
       <div class="field-row">
         <div class="field">
           <label>Email</label>
@@ -167,18 +170,22 @@
           <span class="errmsg" id="e-telefono">Campo obbligatorio</span>
         </div>
       </div>
+
       <div class="socio-row" onclick="toggleSocio()">
         <div class="checkbox" id="socioCheck"></div>
         <span class="socio-label-text">Vieni con un socio?</span>
       </div>
+
       <div id="socioField" style="display:none; margin-bottom:12px;">
         <div class="field">
           <label>Nome e cognome del socio <span class="opt">(facoltativo)</span></label>
           <input type="text" id="f-socio" placeholder="Es. Laura Bianchi">
         </div>
       </div>
+
       <button class="btn-submit" id="btnSubmit" onclick="submitBooking()">Prenota il tuo posto</button>
       <div class="loading" id="loading">Invio in corso…</div>
+      <div class="error-box" id="errorBox"></div>
     </div>
 
     <div class="success-screen" id="successScreen">
@@ -244,25 +251,30 @@
     ],
   };
 
-  const days      = Object.keys(SCHEDULE);
+  const days = Object.keys(SCHEDULE);
   const dayLabels = ['Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato'];
-  const dayNums   = [11,12,13,14,15,16];
+  const dayNums = [11,12,13,14,15,16];
 
-  let currentDay     = days[0];
-  let selectedClass  = null;
-  let socioOn        = false;
-  let bookings       = {};
-  let isLoadingCount = false;
-
-  function initBookings() {
-    bookings = {};
-    days.forEach(d => bookings[d] = {});
-  }
-
-  initBookings();
+  let currentDay = days[0];
+  let selectedClass = null;
+  let socioOn = false;
+  const bookings = {};
+  days.forEach(d => bookings[d] = {});
 
   function classKey(c, i) {
     return i + '_' + c.name + '_' + c.time;
+  }
+
+  function showError(message) {
+    const box = document.getElementById('errorBox');
+    box.textContent = message;
+    box.style.display = 'block';
+  }
+
+  function hideError() {
+    const box = document.getElementById('errorBox');
+    box.style.display = 'none';
+    box.textContent = '';
   }
 
   function scrollToForm() {
@@ -272,7 +284,6 @@
   function renderDays() {
     const tabs = document.getElementById('dayTabs');
     tabs.innerHTML = '';
-
     days.forEach((d, i) => {
       const t = document.createElement('div');
       t.className = 'day-tab' + (d === currentDay ? ' active' : '');
@@ -316,12 +327,12 @@
       grp.appendChild(lbl);
 
       groups[slot].forEach(c => {
-        const key    = classKey(c, c.idx);
+        const key = classKey(c, c.idx);
         const booked = bookings[currentDay][key] || 0;
-        const avail  = Math.max(0, SPOTS - booked);
+        const avail = SPOTS - booked;
         const isFull = avail <= 0;
-        const isLow  = avail <= 2 && avail > 0;
-        const isSel  = selectedClass && selectedClass.day === currentDay && selectedClass.key === key;
+        const isLow = avail <= 2 && avail > 0;
+        const isSel = selectedClass && selectedClass.day === currentDay && selectedClass.key === key;
 
         const row = document.createElement('div');
         row.className = 'class-row' + (isSel ? ' selected' : '') + (isFull ? ' full' : '');
@@ -365,7 +376,6 @@
 
   function updateSelectedCorso() {
     const el = document.getElementById('selectedCorso');
-
     if (!selectedClass) {
       el.className = 'selected-corso empty';
       el.innerHTML = '<p>Seleziona prima un corso<br>dal calendario ↑</p>';
@@ -383,7 +393,6 @@
 
   function validate() {
     let ok = true;
-
     [
       { id: 'f-nome',     err: 'e-nome',     fn: v => v.trim().length > 0 },
       { id: 'f-cognome',  err: 'e-cognome',  fn: v => v.trim().length > 0 },
@@ -392,7 +401,6 @@
     ].forEach(r => {
       const inp = document.getElementById(r.id);
       const err = document.getElementById(r.err);
-
       if (!r.fn(inp.value)) {
         inp.classList.add('error');
         err.style.display = 'block';
@@ -402,44 +410,38 @@
         err.style.display = 'none';
       }
     });
-
     return ok;
   }
 
   async function caricaConteggi() {
-    if (isLoadingCount) return;
-    isLoadingCount = true;
-
     try {
       const resp = await fetch(APPS_SCRIPT_URL + '?action=counts', { cache: 'no-store' });
       const data = await resp.json();
 
-      if (!data.ok || !data.counts) {
-        throw new Error('Conteggi non validi');
-      }
+      if (!data.ok || !data.counts) throw new Error('Conteggi non validi');
 
-      initBookings();
+      const counts = data.counts;
 
       days.forEach(d => {
-        const idx   = days.indexOf(d);
+        const idx = days.indexOf(d);
         const label = dayLabels[idx] + ' ' + dayNums[idx] + ' maggio';
 
         SCHEDULE[d].forEach((c, i) => {
-          const key      = classKey(c, i);
+          const key = classKey(c, i);
           const sheetKey = c.name + '|' + label + '|' + c.time;
-          bookings[d][key] = Number(data.counts[sheetKey] || 0);
+          bookings[d][key] = counts[sheetKey] || 0;
         });
       });
 
       renderClasses();
     } catch (e) {
       console.error('Conteggi non disponibili:', e);
-    } finally {
-      isLoadingCount = false;
     }
   }
 
   async function submitBooking() {
+    hideError();
+
     if (!selectedClass) {
       document.getElementById('selectedCorso').style.borderColor = '#DC2626';
       if (window.innerWidth <= 720) window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -449,14 +451,14 @@
     if (!validate()) return;
 
     const data = {
-      nome:     document.getElementById('f-nome').value.trim(),
-      cognome:  document.getElementById('f-cognome').value.trim(),
-      email:    document.getElementById('f-email').value.trim(),
+      nome: document.getElementById('f-nome').value.trim(),
+      cognome: document.getElementById('f-cognome').value.trim(),
+      email: document.getElementById('f-email').value.trim(),
       telefono: document.getElementById('f-telefono').value.trim(),
-      socio:    socioOn ? (document.getElementById('f-socio').value.trim() || '') : '',
-      corso:    selectedClass.name,
-      giorno:   selectedClass.dayLabel + ' ' + selectedClass.dayNum + ' maggio',
-      orario:   selectedClass.time,
+      socio: socioOn ? (document.getElementById('f-socio').value.trim() || '') : '',
+      corso: selectedClass.name,
+      giorno: selectedClass.dayLabel + ' ' + selectedClass.dayNum + ' maggio',
+      orario: selectedClass.time,
     };
 
     const btn = document.getElementById('btnSubmit');
@@ -469,7 +471,7 @@
       const resp = await fetch(APPS_SCRIPT_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify(data)
+        body: JSON.stringify(data),
       });
 
       const result = await resp.json();
@@ -480,12 +482,12 @@
         btn.disabled = false;
 
         if (result.error === 'POSTI_ESAURITI') {
-          alert('Posti esauriti per questo corso. Aggiorno le disponibilità.');
+          showError('Posti esauriti per questo corso. Ho aggiornato le disponibilità.');
           await caricaConteggi();
           return;
         }
 
-        alert('Errore durante la prenotazione: ' + (result.error || 'errore sconosciuto'));
+        showError('Errore durante la prenotazione: ' + (result.error || 'errore sconosciuto'));
         return;
       }
 
@@ -496,6 +498,7 @@
 
       const s = document.getElementById('successScreen');
       s.style.display = 'block';
+
       document.getElementById('successMsg').textContent =
         data.nome + ', ti aspettiamo per ' + data.corso + ' ' + data.giorno +
         ' alle ' + data.orario + '. Controlla la tua email ' + data.email +
@@ -506,31 +509,30 @@
     } catch (e) {
       loading.style.display = 'none';
       btn.disabled = false;
+      showError('Errore di rete o risposta non valida.');
       console.error(e);
-      alert('Errore di rete o risposta non valida.');
     }
   }
 
-  function resetForm() {
+  async function resetForm() {
     document.getElementById('formContent').style.display = 'block';
     document.getElementById('successScreen').style.display = 'none';
     document.getElementById('fab').style.display = 'block';
     document.getElementById('btnSubmit').disabled = false;
+    document.getElementById('loading').style.display = 'none';
 
-    ['f-nome','f-cognome','f-email','f-telefono','f-socio'].forEach(id => {
-      document.getElementById(id).value = '';
-    });
+    ['f-nome','f-cognome','f-email','f-telefono','f-socio'].forEach(id => document.getElementById(id).value = '');
 
     socioOn = false;
     document.getElementById('socioCheck').className = 'checkbox';
     document.getElementById('socioField').style.display = 'none';
-    selectedClass = null;
-    updateSelectedCorso();
-    renderClasses();
 
-    if (window.innerWidth <= 720) {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
+    selectedClass = null;
+    hideError();
+    updateSelectedCorso();
+    await caricaConteggi();
+
+    if (window.innerWidth <= 720) window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   renderDays();
