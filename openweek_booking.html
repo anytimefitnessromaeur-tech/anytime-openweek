@@ -180,6 +180,7 @@
       <button class="btn-submit" id="btnSubmit" onclick="submitBooking()">Prenota il tuo posto</button>
       <div class="loading" id="loading">Invio in corso…</div>
     </div>
+
     <div class="success-screen" id="successScreen">
       <div class="success-icon">
         <svg viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
@@ -246,13 +247,23 @@
   const days      = Object.keys(SCHEDULE);
   const dayLabels = ['Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato'];
   const dayNums   = [11,12,13,14,15,16];
-  let currentDay  = days[0];
-  let selectedClass = null;
-  let socioOn = false;
-  const bookings = {};
-  days.forEach(d => bookings[d] = {});
 
-  function classKey(c, i) { return i + '_' + c.name + '_' + c.time; }
+  let currentDay     = days[0];
+  let selectedClass  = null;
+  let socioOn        = false;
+  let bookings       = {};
+  let isLoadingCount = false;
+
+  function initBookings() {
+    bookings = {};
+    days.forEach(d => bookings[d] = {});
+  }
+
+  initBookings();
+
+  function classKey(c, i) {
+    return i + '_' + c.name + '_' + c.time;
+  }
 
   function scrollToForm() {
     document.getElementById('formPanel').scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -261,11 +272,18 @@
   function renderDays() {
     const tabs = document.getElementById('dayTabs');
     tabs.innerHTML = '';
+
     days.forEach((d, i) => {
       const t = document.createElement('div');
       t.className = 'day-tab' + (d === currentDay ? ' active' : '');
       t.innerHTML = '<span class="dn">' + dayLabels[i].slice(0,3) + '</span><span class="dd">' + dayNums[i] + '</span><span class="dm">mag</span>';
-      t.onclick = () => { currentDay = d; selectedClass = null; updateSelectedCorso(); renderDays(); renderClasses(); };
+      t.onclick = () => {
+        currentDay = d;
+        selectedClass = null;
+        updateSelectedCorso();
+        renderDays();
+        renderClasses();
+      };
       tabs.appendChild(t);
     });
   }
@@ -274,11 +292,15 @@
     const wrap = document.getElementById('classesWrap');
     const classes = SCHEDULE[currentDay];
     wrap.innerHTML = '';
-    if (!classes || !classes.length) { wrap.innerHTML = '<div class="no-class">Nessun corso disponibile</div>'; return; }
+
+    if (!classes || !classes.length) {
+      wrap.innerHTML = '<div class="no-class">Nessun corso disponibile</div>';
+      return;
+    }
 
     const groups = {};
     classes.forEach((c, i) => {
-      const hour = parseInt(c.time.split(':')[0]);
+      const hour = parseInt(c.time.split(':')[0], 10);
       const slot = hour < 12 ? 'Mattina' : hour < 16 ? 'Pomeriggio' : 'Sera';
       if (!groups[slot]) groups[slot] = [];
       groups[slot].push({ ...c, idx: i });
@@ -286,6 +308,7 @@
 
     ['Mattina','Pomeriggio','Sera'].forEach(slot => {
       if (!groups[slot]) return;
+
       const grp = document.createElement('div');
       const lbl = document.createElement('div');
       lbl.className = 'time-label';
@@ -295,32 +318,54 @@
       groups[slot].forEach(c => {
         const key    = classKey(c, c.idx);
         const booked = bookings[currentDay][key] || 0;
-        const avail  = SPOTS - booked;
+        const avail  = Math.max(0, SPOTS - booked);
         const isFull = avail <= 0;
         const isLow  = avail <= 2 && avail > 0;
         const isSel  = selectedClass && selectedClass.day === currentDay && selectedClass.key === key;
 
         const row = document.createElement('div');
         row.className = 'class-row' + (isSel ? ' selected' : '') + (isFull ? ' full' : '');
+
         const dotsHtml = [1,2,3].map(n => '<div class="dot' + (n <= c.intensity ? ' on' : '') + '"></div>').join('');
-        row.innerHTML = '<div class="class-color"></div><div class="class-info"><div class="class-name-row">' + c.name + '</div><div class="class-time-row">' + c.time + '</div></div><div class="class-right"><div class="spots-count' + (isFull ? ' zero' : isLow ? ' low' : '') + '">' + (isFull ? '–' : avail) + '</div><div class="spots-label">' + (isFull ? 'esaurito' : 'posti') + '</div><div class="dots">' + dotsHtml + '</div></div>';
+
+        row.innerHTML =
+          '<div class="class-color"></div>' +
+          '<div class="class-info">' +
+            '<div class="class-name-row">' + c.name + '</div>' +
+            '<div class="class-time-row">' + c.time + '</div>' +
+          '</div>' +
+          '<div class="class-right">' +
+            '<div class="spots-count' + (isFull ? ' zero' : isLow ? ' low' : '') + '">' + (isFull ? '–' : avail) + '</div>' +
+            '<div class="spots-label">' + (isFull ? 'esaurito' : 'posti') + '</div>' +
+            '<div class="dots">' + dotsHtml + '</div>' +
+          '</div>';
 
         if (!isFull) {
           row.onclick = () => {
-            selectedClass = { day: currentDay, key, name: c.name, time: c.time, dayLabel: dayLabels[days.indexOf(currentDay)], dayNum: dayNums[days.indexOf(currentDay)] };
+            selectedClass = {
+              day: currentDay,
+              key,
+              name: c.name,
+              time: c.time,
+              dayLabel: dayLabels[days.indexOf(currentDay)],
+              dayNum: dayNums[days.indexOf(currentDay)]
+            };
             updateSelectedCorso();
             renderClasses();
             if (window.innerWidth <= 720) setTimeout(scrollToForm, 100);
           };
         }
+
         grp.appendChild(row);
       });
+
       wrap.appendChild(grp);
     });
   }
 
   function updateSelectedCorso() {
     const el = document.getElementById('selectedCorso');
+
     if (!selectedClass) {
       el.className = 'selected-corso empty';
       el.innerHTML = '<p>Seleziona prima un corso<br>dal calendario ↑</p>';
@@ -338,6 +383,7 @@
 
   function validate() {
     let ok = true;
+
     [
       { id: 'f-nome',     err: 'e-nome',     fn: v => v.trim().length > 0 },
       { id: 'f-cognome',  err: 'e-cognome',  fn: v => v.trim().length > 0 },
@@ -346,10 +392,51 @@
     ].forEach(r => {
       const inp = document.getElementById(r.id);
       const err = document.getElementById(r.err);
-      if (!r.fn(inp.value)) { inp.classList.add('error'); err.style.display = 'block'; ok = false; }
-      else { inp.classList.remove('error'); err.style.display = 'none'; }
+
+      if (!r.fn(inp.value)) {
+        inp.classList.add('error');
+        err.style.display = 'block';
+        ok = false;
+      } else {
+        inp.classList.remove('error');
+        err.style.display = 'none';
+      }
     });
+
     return ok;
+  }
+
+  async function caricaConteggi() {
+    if (isLoadingCount) return;
+    isLoadingCount = true;
+
+    try {
+      const resp = await fetch(APPS_SCRIPT_URL + '?action=counts', { cache: 'no-store' });
+      const data = await resp.json();
+
+      if (!data.ok || !data.counts) {
+        throw new Error('Conteggi non validi');
+      }
+
+      initBookings();
+
+      days.forEach(d => {
+        const idx   = days.indexOf(d);
+        const label = dayLabels[idx] + ' ' + dayNums[idx] + ' maggio';
+
+        SCHEDULE[d].forEach((c, i) => {
+          const key      = classKey(c, i);
+          const sheetKey = c.name + '|' + label + '|' + c.time;
+          bookings[d][key] = Number(data.counts[sheetKey] || 0);
+        });
+      });
+
+      renderClasses();
+    } catch (e) {
+      console.error('Conteggi non disponibili:', e);
+    } finally {
+      isLoadingCount = false;
+    }
   }
 
   async function submitBooking() {
@@ -358,6 +445,7 @@
       if (window.innerWidth <= 720) window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
+
     if (!validate()) return;
 
     const data = {
@@ -371,28 +459,56 @@
       orario:   selectedClass.time,
     };
 
-    document.getElementById('btnSubmit').disabled = true;
-    document.getElementById('loading').style.display = 'block';
+    const btn = document.getElementById('btnSubmit');
+    const loading = document.getElementById('loading');
+
+    btn.disabled = true;
+    loading.style.display = 'block';
 
     try {
-      await fetch(APPS_SCRIPT_URL, {
+      const resp = await fetch(APPS_SCRIPT_URL, {
         method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(data)
       });
-      document.getElementById('loading').style.display = 'none';
-    } catch(e) {
-      document.getElementById('loading').style.display = 'none';
-    }
 
-    bookings[selectedClass.day][selectedClass.key] = (bookings[selectedClass.day][selectedClass.key] || 0) + 1;
-    document.getElementById('formContent').style.display = 'none';
-    document.getElementById('fab').style.display = 'none';
-    const s = document.getElementById('successScreen');
-    s.style.display = 'block';
-    document.getElementById('successMsg').textContent = data.nome + ', ti aspettiamo per ' + data.corso + ' ' + data.giorno + ' alle ' + data.orario + '. Controlla la tua email ' + data.email + ' — ti manderemo un promemoria 24h e 1h prima!';
-    renderClasses();
+      const result = await resp.json();
+
+      loading.style.display = 'none';
+
+      if (!result.ok) {
+        btn.disabled = false;
+
+        if (result.error === 'POSTI_ESAURITI') {
+          alert('Posti esauriti per questo corso. Aggiorno le disponibilità.');
+          await caricaConteggi();
+          return;
+        }
+
+        alert('Errore durante la prenotazione: ' + (result.error || 'errore sconosciuto'));
+        return;
+      }
+
+      await caricaConteggi();
+
+      document.getElementById('formContent').style.display = 'none';
+      document.getElementById('fab').style.display = 'none';
+
+      const s = document.getElementById('successScreen');
+      s.style.display = 'block';
+      document.getElementById('successMsg').textContent =
+        data.nome + ', ti aspettiamo per ' + data.corso + ' ' + data.giorno +
+        ' alle ' + data.orario + '. Controlla la tua email ' + data.email +
+        ' — ti manderemo un promemoria 24h e 1h prima!';
+
+      renderClasses();
+
+    } catch (e) {
+      loading.style.display = 'none';
+      btn.disabled = false;
+      console.error(e);
+      alert('Errore di rete o risposta non valida.');
+    }
   }
 
   function resetForm() {
@@ -400,42 +516,20 @@
     document.getElementById('successScreen').style.display = 'none';
     document.getElementById('fab').style.display = 'block';
     document.getElementById('btnSubmit').disabled = false;
-    ['f-nome','f-cognome','f-email','f-telefono','f-socio'].forEach(id => document.getElementById(id).value = '');
+
+    ['f-nome','f-cognome','f-email','f-telefono','f-socio'].forEach(id => {
+      document.getElementById(id).value = '';
+    });
+
     socioOn = false;
     document.getElementById('socioCheck').className = 'checkbox';
     document.getElementById('socioField').style.display = 'none';
     selectedClass = null;
     updateSelectedCorso();
     renderClasses();
-    if (window.innerWidth <= 720) window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
 
-  // Carica posti reali dal Google Sheet CSV all'avvio
-  async function caricaConteggi() {
-    try {
-      const resp = await fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vRWXEXiMX3F2tg1yEiNFmlLfE1HAtg-tq0fT3eH4I5OCdj20uN1G9lJgEEYTSIOdTfPp9zuu8rbLqFW/pub?gid=282748574&single=true&output=csv', { cache: 'no-store' });
-      const csv  = await resp.text();
-      const counts = {};
-      csv.split('\n').slice(1).forEach(row => {
-        const cols = row.split(',');
-        if (cols.length >= 2 && cols[0].trim()) {
-          counts[cols[0].trim()] = parseInt(cols[1]) || 0;
-        }
-      });
-      days.forEach(d => {
-        const idx   = days.indexOf(d);
-        const label = dayLabels[idx] + ' ' + dayNums[idx] + ' maggio';
-        SCHEDULE[d].forEach((c, i) => {
-          const key      = classKey(c, i);
-          const sheetKey = c.name + '|' + label + '|' + c.time;
-          if (counts[sheetKey] !== undefined) {
-            bookings[d][key] = counts[sheetKey];
-          }
-        });
-      });
-      renderClasses();
-    } catch(e) {
-      console.log('Conteggi non disponibili:', e);
+    if (window.innerWidth <= 720) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }
 
