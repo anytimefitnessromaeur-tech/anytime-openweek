@@ -80,7 +80,6 @@
   .btn-submit:active { transform: scale(0.98); }
   .btn-submit:disabled { background: var(--g200); color: var(--g400); cursor: not-allowed; }
   .loading { display: none; text-align: center; padding: 12px; font-size: 13px; color: var(--p600); }
-  .error-box { display:none; margin-top:12px; padding:12px 14px; border-radius:10px; background:#FEF2F2; border:1px solid #FECACA; color:#991B1B; font-size:13px; line-height:1.5; }
   .success-screen { display: none; text-align: center; padding: 16px 0; }
   .success-icon { width: 60px; height: 60px; border-radius: 50%; background: #D1FAE5; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; }
   .success-icon svg { width: 28px; height: 28px; }
@@ -139,7 +138,6 @@
       <div class="selected-slot empty" id="selectedSlotEl">
         <p>Seleziona prima un orario<br>dal calendario ↑</p>
       </div>
-
       <div class="field-row">
         <div class="field">
           <label>Nome</label>
@@ -152,7 +150,6 @@
           <span class="errmsg" id="e-cognome">Campo obbligatorio</span>
         </div>
       </div>
-
       <div class="field-row">
         <div class="field">
           <label>Email</label>
@@ -165,24 +162,19 @@
           <span class="errmsg" id="e-telefono">Campo obbligatorio</span>
         </div>
       </div>
-
       <div class="socio-row" onclick="toggleSocio()">
         <div class="checkbox" id="socioCheck"></div>
         <span class="socio-label-text">Vieni con un socio?</span>
       </div>
-
       <div id="socioField" style="display:none; margin-bottom:12px;">
         <div class="field">
           <label>Nome e cognome del socio <span class="opt">(facoltativo)</span></label>
           <input type="text" id="f-socio" placeholder="Es. Laura Bianchi">
         </div>
       </div>
-
       <button class="btn-submit" id="btnSubmit" onclick="submitBooking()">Prenota il tuo accesso</button>
       <div class="loading" id="loading">Invio in corso…</div>
-      <div class="error-box" id="errorBox"></div>
     </div>
-
     <div class="success-screen" id="successScreen">
       <div class="success-icon">
         <svg viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
@@ -209,35 +201,16 @@
   const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxAJ_yAR8WHA0NYZ4gne4uB4dvpJzrJauwp6gqT78AxhcuXeUtb_WganEilDjgfW5R0MA/exec';
   const SPOTS = 2;
   const HOURS = [10,11,12,13,14,15,16,17];
-  const days = ['Lun 11','Mar 12','Mer 13','Gio 14','Ven 15','Sab 16'];
+  const days      = ['Lun 11','Mar 12','Mer 13','Gio 14','Ven 15','Sab 16'];
   const dayLabels = ['Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato'];
-  const dayNums = [11,12,13,14,15,16];
-
-  let currentDay = days[0];
+  const dayNums   = [11,12,13,14,15,16];
+  let currentDay   = days[0];
   let selectedSlot = null;
   let socioOn = false;
   const bookings = {};
+  days.forEach(d => { bookings[d] = {}; HOURS.forEach(h => bookings[d][h] = 0); });
 
-  days.forEach(d => {
-    bookings[d] = {};
-    HOURS.forEach(h => bookings[d][h] = 0);
-  });
-
-  function slotLabel(h) {
-    return String(h).padStart(2,'0') + ':00–' + String(h + 1).padStart(2,'0') + ':00';
-  }
-
-  function showError(message) {
-    const box = document.getElementById('errorBox');
-    box.textContent = message;
-    box.style.display = 'block';
-  }
-
-  function hideError() {
-    const box = document.getElementById('errorBox');
-    box.style.display = 'none';
-    box.textContent = '';
-  }
+  function slotLabel(h) { return String(h).padStart(2,'0') + ':00 – ' + String(h+1).padStart(2,'0') + ':00'; }
 
   function scrollToForm() {
     document.getElementById('formPanel').scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -246,18 +219,11 @@
   function renderDays() {
     const tabs = document.getElementById('dayTabs');
     tabs.innerHTML = '';
-
     days.forEach((d, i) => {
       const t = document.createElement('div');
       t.className = 'day-tab' + (d === currentDay ? ' active' : '');
       t.innerHTML = '<span class="dn">' + dayLabels[i].slice(0,3) + '</span><span class="dd">' + dayNums[i] + '</span><span class="dm">mag</span>';
-      t.onclick = () => {
-        currentDay = d;
-        selectedSlot = null;
-        updateSelectedSlot();
-        renderDays();
-        renderSlots();
-      };
+      t.onclick = () => { currentDay = d; selectedSlot = null; updateSelectedSlot(); renderDays(); renderSlots(); };
       tabs.appendChild(t);
     });
   }
@@ -265,43 +231,24 @@
   function renderSlots() {
     const grid = document.getElementById('slotsGrid');
     grid.innerHTML = '';
-
     HOURS.forEach(h => {
       const booked = bookings[currentDay][h] || 0;
-      const avail = SPOTS - booked;
+      const avail  = SPOTS - booked;
       const isFull = avail <= 0;
-      const isLow = avail === 1;
-      const isSel = selectedSlot && selectedSlot.day === currentDay && selectedSlot.hour === h;
-
+      const isLow  = avail === 1;
+      const isSel  = selectedSlot && selectedSlot.day === currentDay && selectedSlot.hour === h;
       const card = document.createElement('div');
       card.className = 'slot-card' + (isSel ? ' selected' : '') + (isFull ? ' full' : '');
-
-      const pipsHtml = Array.from({length: SPOTS}, (_, i) =>
-        '<div class="pip' + (i < booked ? ' taken' + (isLow ? ' low' : '') : '') + '"></div>'
-      ).join('');
-
-      card.innerHTML =
-        '<div class="slot-time">' + String(h).padStart(2,'0') + ':00</div>' +
-        '<div class="slot-avail ' + (isFull ? 'zero' : isLow ? 'low' : 'ok') + '">' +
-          (isFull ? 'Esaurito' : avail === 1 ? '1 posto' : avail + ' posti') +
-        '</div>' +
-        '<div class="slot-pip">' + pipsHtml + '</div>';
-
+      const pipsHtml = Array.from({length: SPOTS}, (_, i) => '<div class="pip' + (i < booked ? ' taken' + (isLow ? ' low' : '') : '') + '"></div>').join('');
+      card.innerHTML = '<div class="slot-time">' + String(h).padStart(2,'0') + ':00</div><div class="slot-avail ' + (isFull ? 'zero' : isLow ? 'low' : 'ok') + '">' + (isFull ? 'Esaurito' : avail === 1 ? '1 posto' : avail + ' posti') + '</div><div class="slot-pip">' + pipsHtml + '</div>';
       if (!isFull) {
         card.onclick = () => {
-          selectedSlot = {
-            day: currentDay,
-            hour: h,
-            label: slotLabel(h),
-            dayLabel: dayLabels[days.indexOf(currentDay)],
-            dayNum: dayNums[days.indexOf(currentDay)]
-          };
+          selectedSlot = { day: currentDay, hour: h, label: slotLabel(h), dayLabel: dayLabels[days.indexOf(currentDay)], dayNum: dayNums[days.indexOf(currentDay)] };
           updateSelectedSlot();
           renderSlots();
           if (window.innerWidth <= 720) setTimeout(scrollToForm, 100);
         };
       }
-
       grid.appendChild(card);
     });
   }
@@ -333,138 +280,97 @@
     ].forEach(r => {
       const inp = document.getElementById(r.id);
       const err = document.getElementById(r.err);
-      if (!r.fn(inp.value)) {
-        inp.classList.add('error');
-        err.style.display = 'block';
-        ok = false;
-      } else {
-        inp.classList.remove('error');
-        err.style.display = 'none';
-      }
+      if (!r.fn(inp.value)) { inp.classList.add('error'); err.style.display = 'block'; ok = false; }
+      else { inp.classList.remove('error'); err.style.display = 'none'; }
     });
     return ok;
   }
 
-  async function caricaConteggi() {
-    try {
-      const resp = await fetch(APPS_SCRIPT_URL + '?action=counts', { cache: 'no-store' });
-      const data = await resp.json();
-
-      if (!data.ok || !data.counts) throw new Error('Conteggi non validi');
-
-      const counts = data.counts;
-
-      days.forEach(d => {
-        const idx = days.indexOf(d);
-        const label = dayLabels[idx] + ' ' + dayNums[idx] + ' maggio';
-
-        HOURS.forEach(h => {
-          const sheetKey = 'Prova libera in palestra|' + label + '|' + slotLabel(h);
-          bookings[d][h] = counts[sheetKey] || 0;
-        });
-      });
-
-      renderSlots();
-    } catch (e) {
-      console.error('Conteggi non disponibili:', e);
-    }
-  }
-
   async function submitBooking() {
-    hideError();
-
     if (!selectedSlot) {
       document.getElementById('selectedSlotEl').style.borderColor = '#DC2626';
       if (window.innerWidth <= 720) window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
-
     if (!validate()) return;
 
     const data = {
-      tipo: 'prova_palestra',
-      nome: document.getElementById('f-nome').value.trim(),
-      cognome: document.getElementById('f-cognome').value.trim(),
-      email: document.getElementById('f-email').value.trim(),
+      tipo:     'prova_palestra',
+      nome:     document.getElementById('f-nome').value.trim(),
+      cognome:  document.getElementById('f-cognome').value.trim(),
+      email:    document.getElementById('f-email').value.trim(),
       telefono: document.getElementById('f-telefono').value.trim(),
-      socio: socioOn ? (document.getElementById('f-socio').value.trim() || '') : '',
-      corso: 'Prova libera in palestra',
-      giorno: selectedSlot.dayLabel + ' ' + selectedSlot.dayNum + ' maggio',
-      orario: selectedSlot.label,
+      socio:    socioOn ? (document.getElementById('f-socio').value.trim() || '') : '',
+      corso:    'Prova libera in palestra',
+      giorno:   selectedSlot.dayLabel + ' ' + selectedSlot.dayNum + ' maggio',
+      orario:   selectedSlot.label,
     };
 
-    const btn = document.getElementById('btnSubmit');
-    const loading = document.getElementById('loading');
-
-    btn.disabled = true;
-    loading.style.display = 'block';
+    document.getElementById('btnSubmit').disabled = true;
+    document.getElementById('loading').style.display = 'block';
 
     try {
-      const resp = await fetch(APPS_SCRIPT_URL, {
+      await fetch(APPS_SCRIPT_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
-
-      const result = await resp.json();
-
-      loading.style.display = 'none';
-
-      if (!result.ok) {
-        btn.disabled = false;
-
-        if (result.error === 'POSTI_ESAURITI') {
-          showError('Posti esauriti per questa fascia oraria. Ho aggiornato le disponibilità.');
-          await caricaConteggi();
-          return;
-        }
-
-        showError('Errore durante la prenotazione: ' + (result.error || 'errore sconosciuto'));
-        return;
-      }
-
-      await caricaConteggi();
-
-      document.getElementById('formContent').style.display = 'none';
-      document.getElementById('fab').style.display = 'none';
-
-      const s = document.getElementById('successScreen');
-      s.style.display = 'block';
-
-      document.getElementById('successMsg').textContent =
-        data.nome + ', ti aspettiamo il ' + data.giorno +
-        ' dalle ' + data.orario + '. Controlla la tua email ' + data.email +
-        ' — ti manderemo un reminder prima dell\'accesso!';
-
-      renderSlots();
-
-    } catch (e) {
-      loading.style.display = 'none';
-      btn.disabled = false;
-      showError('Errore di rete o risposta non valida.');
-      console.error(e);
+      document.getElementById('loading').style.display = 'none';
+    } catch(e) {
+      document.getElementById('loading').style.display = 'none';
     }
+
+    bookings[selectedSlot.day][selectedSlot.hour] = (bookings[selectedSlot.day][selectedSlot.hour] || 0) + 1;
+    document.getElementById('formContent').style.display = 'none';
+    document.getElementById('fab').style.display = 'none';
+    const s = document.getElementById('successScreen');
+    s.style.display = 'block';
+    document.getElementById('successMsg').textContent = data.nome + ', ti aspettiamo il ' + data.giorno + ' dalle ' + data.orario + '. Controlla la tua email ' + data.email + ' — ti manderemo un reminder prima dell\'accesso!';
+    renderSlots();
   }
 
-  async function resetForm() {
+  function resetForm() {
     document.getElementById('formContent').style.display = 'block';
     document.getElementById('successScreen').style.display = 'none';
     document.getElementById('fab').style.display = 'block';
     document.getElementById('btnSubmit').disabled = false;
-    document.getElementById('loading').style.display = 'none';
-
     ['f-nome','f-cognome','f-email','f-telefono','f-socio'].forEach(id => document.getElementById(id).value = '');
-
     socioOn = false;
     document.getElementById('socioCheck').className = 'checkbox';
     document.getElementById('socioField').style.display = 'none';
-
     selectedSlot = null;
-    hideError();
     updateSelectedSlot();
-    await caricaConteggi();
-
+    renderSlots();
     if (window.innerWidth <= 720) window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // Carica posti reali dal Google Sheet CSV all'avvio
+  async function caricaConteggi() {
+    try {
+      const resp = await fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vRWXEXiMX3F2tg1yEiNFmlLfE1HAtg-tq0fT3eH4I5OCdj20uN1G9lJgEEYTSIOdTfPp9zuu8rbLqFW/pub?gid=282748574&single=true&output=csv', { cache: 'no-store' });
+      const csv  = await resp.text();
+      const counts = {};
+      csv.split('\n').slice(1).forEach(row => {
+        const cols = row.split(',');
+        if (cols.length >= 2 && cols[0].trim()) {
+          counts[cols[0].trim()] = parseInt(cols[1]) || 0;
+        }
+      });
+      days.forEach(d => {
+        const idx   = days.indexOf(d);
+        const label = dayLabels[idx] + ' ' + dayNums[idx] + ' maggio';
+        HOURS.forEach(h => {
+          const sheetKey = 'Prova libera in palestra|' + label + '|' + slotLabel(h);
+          if (counts[sheetKey] !== undefined) {
+            bookings[d][h] = counts[sheetKey];
+          }
+        });
+      });
+      renderSlots();
+    } catch(e) {
+      console.log('Conteggi non disponibili:', e);
+    }
   }
 
   renderDays();
