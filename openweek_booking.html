@@ -410,8 +410,38 @@
     if (window.innerWidth <= 720) window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
+  // Carica posti reali dal Google Sheet CSV all'avvio
+  async function caricaConteggi() {
+    try {
+      const resp = await fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vRWXEXiMX3F2tg1yEiNFmlLfE1HAtg-tq0fT3eH4I5OCdj20uN1G9lJgEEYTSIOdTfPp9zuu8rbLqFW/pub?gid=282748574&single=true&output=csv', { cache: 'no-store' });
+      const csv  = await resp.text();
+      const counts = {};
+      csv.split('\n').slice(1).forEach(row => {
+        const cols = row.split(',');
+        if (cols.length >= 2 && cols[0].trim()) {
+          counts[cols[0].trim()] = parseInt(cols[1]) || 0;
+        }
+      });
+      days.forEach(d => {
+        const idx   = days.indexOf(d);
+        const label = dayLabels[idx] + ' ' + dayNums[idx] + ' maggio';
+        SCHEDULE[d].forEach((c, i) => {
+          const key      = classKey(c, i);
+          const sheetKey = c.name + '|' + label + '|' + c.time;
+          if (counts[sheetKey] !== undefined) {
+            bookings[d][key] = counts[sheetKey];
+          }
+        });
+      });
+      renderClasses();
+    } catch(e) {
+      console.log('Conteggi non disponibili:', e);
+    }
+  }
+
   renderDays();
   renderClasses();
+  caricaConteggi();
 </script>
 </body>
 </html>
