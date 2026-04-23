@@ -252,42 +252,24 @@
   // ── POSTI GIÀ PRENOTATI — aggiorna questi numeri manualmente ──
   // 0 = nessuno prenotato, 7 = corso pieno
   // Per aggiornare: modifica i numeri, salva, carica su GitHub
-  const bookings = {
-    'Lun 11': {
-      '0_GAG_13:00–13:45': 0,
-      '1_Total Body_14:00–14:45': 0,
-      '2_GAG_18:00–18:45': 0,
-      '3_Total Body_19:00–19:45': 0,
-    },
-    'Mar 12': {
-      '0_Pilates_13:00–13:45': 0,
-      '1_Pilates_14:00–14:45': 0,
-      '2_Pilates_17:30–18:15': 0,
-      '3_Functional Training_18:30–19:15': 0,
-    },
-    'Mer 13': {
-      '0_GAG_13:00–13:45': 0,
-      '1_Total Body_14:00–14:45': 0,
-      '2_GAG_18:00–18:45': 0,
-      '3_Total Body_19:00–19:45': 0,
-    },
-    'Gio 14': {
-      '0_Pilates_13:00–13:45': 0,
-      '1_Pilates_14:00–14:45': 0,
-      '2_ABS – Abdominal_17:30–18:15': 0,
-      '3_Functional Training_18:30–19:15': 0,
-    },
-    'Ven 15': {
-      '0_Functional Training_13:00–13:45': 0,
-      '1_Total Body_14:00–14:45': 0,
-      '2_Pilates Core_17:30–18:15': 0,
-      '3_GAG_18:30–19:15': 0,
-    },
-    'Sab 16': {
-      '0_Pilates Flow_10:30–11:15': 0,
-      '1_HYROX_11:30–12:15': 0,
-    },
+  const POSTI_PRENOTATI = {
+    'Lun 11': { 'GAG|13:00–13:45': 0, 'Total Body|14:00–14:45': 0, 'GAG|18:00–18:45': 0, 'Total Body|19:00–19:45': 0 },
+    'Mar 12': { 'Pilates|13:00–13:45': 0, 'Pilates|14:00–14:45': 0, 'Pilates|17:30–18:15': 0, 'Functional Training|18:30–19:15': 0 },
+    'Mer 13': { 'GAG|13:00–13:45': 0, 'Total Body|14:00–14:45': 0, 'GAG|18:00–18:45': 0, 'Total Body|19:00–19:45': 0 },
+    'Gio 14': { 'Pilates|13:00–13:45': 0, 'Pilates|14:00–14:45': 0, 'ABS – Abdominal|17:30–18:15': 0, 'Functional Training|18:30–19:15': 0 },
+    'Ven 15': { 'Functional Training|13:00–13:45': 0, 'Total Body|14:00–14:45': 0, 'Pilates Core|17:30–18:15': 0, 'GAG|18:30–19:15': 0 },
+    'Sab 16': { 'Pilates Flow|10:30–11:15': 0, 'HYROX|11:30–12:15': 0 },
   };
+
+  const bookings = {};
+  days.forEach(d => {
+    bookings[d] = {};
+    SCHEDULE[d].forEach((c, i) => {
+      const key = classKey(c, i);
+      const prenotati = POSTI_PRENOTATI[d] && POSTI_PRENOTATI[d][c.name + '|' + c.time];
+      bookings[d][key] = prenotati || 0;
+    });
+  });
 
   function classKey(c, i) { return i + '_' + c.name + '_' + c.time; }
 
