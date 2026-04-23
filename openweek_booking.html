@@ -375,24 +375,37 @@
     document.getElementById('loading').style.display = 'block';
 
     try {
-      await fetch(APPS_SCRIPT_URL, {
+      const resp = await fetch(APPS_SCRIPT_URL, {
         method: 'POST',
-        mode: 'no-cors',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
+      const esito = await resp.json();
       document.getElementById('loading').style.display = 'none';
+
+      if (!esito.ok) {
+        document.getElementById('btnSubmit').disabled = false;
+        if (esito.error === 'POSTI_ESAURITI') {
+          await caricaConteggi();
+          alert('Spiacenti, i posti per questo corso sono esauriti. Scegli un altro corso.');
+        } else {
+          alert('Errore durante la prenotazione. Riprova.');
+        }
+        return;
+      }
     } catch(e) {
       document.getElementById('loading').style.display = 'none';
+      document.getElementById('btnSubmit').disabled = false;
+      alert('Errore di connessione. Riprova.');
+      return;
     }
 
-    bookings[selectedClass.day][selectedClass.key] = (bookings[selectedClass.day][selectedClass.key] || 0) + 1;
+    await caricaConteggi();
     document.getElementById('formContent').style.display = 'none';
     document.getElementById('fab').style.display = 'none';
     const s = document.getElementById('successScreen');
     s.style.display = 'block';
     document.getElementById('successMsg').textContent = data.nome + ', ti aspettiamo per ' + data.corso + ' ' + data.giorno + ' alle ' + data.orario + '. Controlla la tua email ' + data.email + ' — ti manderemo un promemoria 24h e 1h prima!';
-    renderClasses();
   }
 
   function resetForm() {
@@ -410,33 +423,22 @@
     if (window.innerWidth <= 720) window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  // Carica posti reali dal Google Sheet CSV all'avvio
+  // Carica posti reali dallo script
   async function caricaConteggi() {
     try {
-      const resp = await fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vRWXEXiMX3F2tg1yEiNFmlLfE1HAtg-tq0fT3eH4I5OCdj20uN1G9lJgEEYTSIOdTfPp9zuu8rbLqFW/pub?gid=282748574&single=true&output=csv', { cache: 'no-store' });
-      const csv  = await resp.text();
-      const counts = {};
-      csv.split('\n').slice(1).forEach(row => {
-        const cols = row.split(',');
-        if (cols.length >= 2 && cols[0].trim()) {
-          counts[cols[0].trim()] = parseInt(cols[1]) || 0;
-        }
-      });
+      const resp = await fetch(APPS_SCRIPT_URL + '?action=counts');
+      const counts = await resp.json();
       days.forEach(d => {
         const idx   = days.indexOf(d);
         const label = dayLabels[idx] + ' ' + dayNums[idx] + ' maggio';
         SCHEDULE[d].forEach((c, i) => {
           const key      = classKey(c, i);
           const sheetKey = c.name + '|' + label + '|' + c.time;
-          if (counts[sheetKey] !== undefined) {
-            bookings[d][key] = counts[sheetKey];
-          }
+          if (counts[sheetKey] !== undefined) bookings[d][key] = counts[sheetKey];
         });
       });
       renderClasses();
-    } catch(e) {
-      console.log('Conteggi non disponibili:', e);
-    }
+    } catch(e) { console.log('Conteggi non disponibili:', e); }
   }
 
   renderDays();
