@@ -249,8 +249,45 @@
   let currentDay  = days[0];
   let selectedClass = null;
   let socioOn = false;
-  const bookings = {};
-  days.forEach(d => bookings[d] = {});
+  // ── POSTI GIÀ PRENOTATI — aggiorna questi numeri manualmente ──
+  // 0 = nessuno prenotato, 7 = corso pieno
+  // Per aggiornare: modifica i numeri, salva, carica su GitHub
+  const bookings = {
+    'Lun 11': {
+      '0_GAG_13:00–13:45': 0,
+      '1_Total Body_14:00–14:45': 0,
+      '2_GAG_18:00–18:45': 0,
+      '3_Total Body_19:00–19:45': 0,
+    },
+    'Mar 12': {
+      '0_Pilates_13:00–13:45': 0,
+      '1_Pilates_14:00–14:45': 0,
+      '2_Pilates_17:30–18:15': 0,
+      '3_Functional Training_18:30–19:15': 0,
+    },
+    'Mer 13': {
+      '0_GAG_13:00–13:45': 0,
+      '1_Total Body_14:00–14:45': 0,
+      '2_GAG_18:00–18:45': 0,
+      '3_Total Body_19:00–19:45': 0,
+    },
+    'Gio 14': {
+      '0_Pilates_13:00–13:45': 0,
+      '1_Pilates_14:00–14:45': 0,
+      '2_ABS – Abdominal_17:30–18:15': 0,
+      '3_Functional Training_18:30–19:15': 0,
+    },
+    'Ven 15': {
+      '0_Functional Training_13:00–13:45': 0,
+      '1_Total Body_14:00–14:45': 0,
+      '2_Pilates Core_17:30–18:15': 0,
+      '3_GAG_18:30–19:15': 0,
+    },
+    'Sab 16': {
+      '0_Pilates Flow_10:30–11:15': 0,
+      '1_HYROX_11:30–12:15': 0,
+    },
+  };
 
   function classKey(c, i) { return i + '_' + c.name + '_' + c.time; }
 
@@ -375,32 +412,18 @@
     document.getElementById('loading').style.display = 'block';
 
     try {
-      const resp = await fetch(APPS_SCRIPT_URL, {
+      await fetch(APPS_SCRIPT_URL, {
         method: 'POST',
+        mode: 'no-cors',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
-      const esito = await resp.json();
       document.getElementById('loading').style.display = 'none';
-
-      if (!esito.ok) {
-        document.getElementById('btnSubmit').disabled = false;
-        if (esito.error === 'POSTI_ESAURITI') {
-          await caricaConteggi();
-          alert('Spiacenti, i posti per questo corso sono esauriti. Scegli un altro corso.');
-        } else {
-          alert('Errore durante la prenotazione. Riprova.');
-        }
-        return;
-      }
     } catch(e) {
       document.getElementById('loading').style.display = 'none';
-      document.getElementById('btnSubmit').disabled = false;
-      alert('Errore di connessione. Riprova.');
-      return;
     }
 
-    await caricaConteggi();
+    bookings[selectedClass.day][selectedClass.key] = (bookings[selectedClass.day][selectedClass.key] || 0) + 1;
     document.getElementById('formContent').style.display = 'none';
     document.getElementById('fab').style.display = 'none';
     const s = document.getElementById('successScreen');
@@ -423,19 +446,7 @@
     if (window.innerWidth <= 720) window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  // Carica posti reali dallo script
-  async function caricaConteggi() {
-    try {
-      const resp = await fetch(APPS_SCRIPT_URL + '?action=counts');
-      const counts = await resp.json();
-      days.forEach(d => {
-        const idx   = days.indexOf(d);
-        const label = dayLabels[idx] + ' ' + dayNums[idx] + ' maggio';
-        SCHEDULE[d].forEach((c, i) => {
-          const key      = classKey(c, i);
-          const sheetKey = c.name + '|' + label + '|' + c.time;
-          if (counts[sheetKey] !== undefined) bookings[d][key] = counts[sheetKey];
-        });
+  function caricaConteggi() { /* conteggi solo locali */ });
       });
       renderClasses();
     } catch(e) { console.log('Conteggi non disponibili:', e); }
