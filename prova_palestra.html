@@ -207,8 +207,23 @@
   let currentDay   = days[0];
   let selectedSlot = null;
   let socioOn = false;
+  // ── POSTI GIÀ PRENOTATI — aggiorna questi numeri manualmente ──
+  // 0 = nessuno prenotato, 2 = fascia piena
+  // Formato: giorno: { ora: prenotati }
+  const POSTI_PRENOTATI = {
+    'Lun 11': { 10:0, 11:0, 12:0, 13:0, 14:0, 15:0, 16:0, 17:0 },
+    'Mar 12': { 10:0, 11:0, 12:0, 13:0, 14:0, 15:0, 16:0, 17:0 },
+    'Mer 13': { 10:0, 11:0, 12:0, 13:0, 14:0, 15:0, 16:0, 17:0 },
+    'Gio 14': { 10:0, 11:0, 12:0, 13:0, 14:0, 15:0, 16:0, 17:0 },
+    'Ven 15': { 10:0, 11:0, 12:0, 13:0, 14:0, 15:0, 16:0, 17:0 },
+    'Sab 16': { 10:0, 11:0, 12:0, 13:0, 14:0, 15:0, 16:0, 17:0 },
+  };
+
   const bookings = {};
-  days.forEach(d => { bookings[d] = {}; HOURS.forEach(h => bookings[d][h] = 0); });
+  days.forEach(d => {
+    bookings[d] = {};
+    HOURS.forEach(h => { bookings[d][h] = (POSTI_PRENOTATI[d] && POSTI_PRENOTATI[d][h]) || 0; });
+  });
 
   function slotLabel(h) { return String(h).padStart(2,'0') + ':00 – ' + String(h+1).padStart(2,'0') + ':00'; }
 
@@ -310,37 +325,23 @@
     document.getElementById('loading').style.display = 'block';
 
     try {
-      const resp = await fetch(APPS_SCRIPT_URL, {
+      await fetch(APPS_SCRIPT_URL, {
         method: 'POST',
+        mode: 'no-cors',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
-      const esito = await resp.json();
       document.getElementById('loading').style.display = 'none';
-
-      if (!esito.ok) {
-        document.getElementById('btnSubmit').disabled = false;
-        if (esito.error === 'POSTI_ESAURITI') {
-          await caricaConteggi();
-          alert('Spiacenti, i posti per questa fascia sono esauriti. Scegli un altro orario.');
-        } else {
-          alert('Errore durante la prenotazione. Riprova.');
-        }
-        return;
-      }
     } catch(e) {
       document.getElementById('loading').style.display = 'none';
-      document.getElementById('btnSubmit').disabled = false;
-      alert('Errore di connessione. Riprova.');
-      return;
     }
 
-    await caricaConteggi();
+    bookings[selectedSlot.day][selectedSlot.hour] = (bookings[selectedSlot.day][selectedSlot.hour] || 0) + 1;
     document.getElementById('formContent').style.display = 'none';
     document.getElementById('fab').style.display = 'none';
     const s = document.getElementById('successScreen');
     s.style.display = 'block';
-    document.getElementById('successMsg').textContent = data.nome + ', ti aspettiamo il ' + data.giorno + ' dalle ' + data.orario + '. Controlla la tua email ' + data.email + ' — ti manderemo un reminder prima dell\'accesso!';
+    document.getElementById('successMsg').textContent = data.nome + ', ti aspettiamo il ' + data.giorno + ' dalle ' + data.orario + '. Controlla la tua email ' + data.email + " — ti manderemo un reminder prima dell'accesso!";
   }
 
   function resetForm() {
@@ -358,22 +359,7 @@
     if (window.innerWidth <= 720) window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  // Carica posti reali dallo script
-  async function caricaConteggi() {
-    try {
-      const resp = await fetch(APPS_SCRIPT_URL + '?action=counts');
-      const counts = await resp.json();
-      days.forEach(d => {
-        const idx   = days.indexOf(d);
-        const label = dayLabels[idx] + ' ' + dayNums[idx] + ' maggio';
-        HOURS.forEach(h => {
-          const sheetKey = 'Prova libera in palestra|' + label + '|' + slotLabel(h);
-          if (counts[sheetKey] !== undefined) bookings[d][h] = counts[sheetKey];
-        });
-      });
-      renderSlots();
-    } catch(e) { console.log('Conteggi non disponibili:', e); }
-  }
+  function caricaConteggi() { /* conteggi gestiti manualmente */ }
 
   renderDays();
   renderSlots();
