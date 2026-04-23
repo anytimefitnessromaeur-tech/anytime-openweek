@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Prova la Palestra — Anytime Fitness Roma EUR</title>
+<title>Open Week — Anytime Fitness Roma EUR</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
     --p900: #3B0764; --p700: #6D28D9; --p600: #7C3AED;
-    --p500: #8B5CF6; --p400: #A78BFA; --p200: #DDD6FE; --p50: #F5F3FF;
+    --p500: #8B5CF6; --p400: #A78BFA; --p200: #DDD6FE; --p100: #EDE9FE; --p50: #F5F3FF;
     --w: #fff; --g50: #F9FAFB; --g100: #F3F4F6; --g200: #E5E7EB;
     --g400: #9CA3AF; --g600: #4B5563; --g800: #1F2937; --red: #DC2626;
   }
@@ -19,8 +19,8 @@
   .hero-inner { position: relative; z-index: 1; max-width: 1100px; margin: 0 auto; padding: 24px 20px 22px; }
   .hero-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
   .hero-logo { font-family: 'Syne', sans-serif; font-size: 10px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: var(--p400); }
-  .hero-badge-top { background: var(--p600); border: 1px solid var(--p500); color: #fff; font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 600; padding: 5px 12px; border-radius: 999px; }
-  .hero h1 { font-family: 'Syne', sans-serif; font-size: clamp(26px, 8vw, 50px); font-weight: 700; color: #fff; line-height: 1.05; letter-spacing: -0.5px; }
+  .hero-badge-top { background: var(--p600); border: 1px solid var(--p500); color: #fff; font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 600; padding: 5px 12px; border-radius: 999px; white-space: nowrap; }
+  .hero h1 { font-family: 'Syne', sans-serif; font-size: clamp(28px, 8vw, 52px); font-weight: 700; color: #fff; line-height: 1.05; letter-spacing: -0.5px; }
   .hero h1 span { color: var(--p400); }
   .hero-sub { font-size: 13px; color: var(--p200); font-weight: 300; line-height: 1.6; margin-top: 8px; max-width: 400px; }
   .hero-chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
@@ -40,28 +40,33 @@
   .day-tab .dm { font-size: 9px; color: var(--g400); display: block; }
   .day-tab.active .dn, .day-tab.active .dd, .day-tab.active .dm { color: #fff; }
   .day-tab.active .dn, .day-tab.active .dm { color: rgba(255,255,255,0.7); }
-  .slots-wrap { padding: 12px 16px 20px; }
-  .slots-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; }
-  .slot-card { border-radius: 14px; border: 1.5px solid var(--g200); padding: 14px 10px; cursor: pointer; transition: all 0.15s; text-align: center; background: var(--w); -webkit-tap-highlight-color: transparent; min-height: 80px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; }
-  .slot-card:active { transform: scale(0.96); }
-  .slot-card.selected { border-color: var(--p600); background: var(--p50); }
-  .slot-card.full { opacity: 0.4; cursor: not-allowed; }
-  .slot-time { font-family: 'Syne', sans-serif; font-size: 17px; font-weight: 700; color: var(--g800); }
-  .slot-avail { font-size: 12px; font-weight: 500; }
-  .slot-avail.ok { color: var(--p600); }
-  .slot-avail.low { color: var(--red); }
-  .slot-avail.zero { color: var(--g400); }
-  .slot-pip { display: flex; justify-content: center; gap: 5px; }
-  .pip { width: 8px; height: 8px; border-radius: 50%; background: var(--g200); }
-  .pip.taken { background: var(--p500); }
-  .pip.taken.low { background: var(--red); }
+  .classes-wrap { padding: 12px 16px 20px; }
+  .time-label { font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--g400); padding: 10px 0 6px; }
+  .class-row { display: flex; align-items: center; gap: 12px; padding: 14px 14px; border-radius: 14px; border: 1.5px solid var(--g200); margin-bottom: 8px; cursor: pointer; transition: all 0.15s; background: var(--w); -webkit-tap-highlight-color: transparent; min-height: 70px; }
+  .class-row:active { transform: scale(0.98); }
+  .class-row.selected { border-color: var(--p600); background: var(--p50); }
+  .class-row.full { opacity: 0.4; cursor: not-allowed; }
+  .class-color { width: 5px; height: 40px; border-radius: 3px; background: var(--p500); flex-shrink: 0; }
+  .class-row.selected .class-color { background: var(--p700); }
+  .class-info { flex: 1; min-width: 0; }
+  .class-name-row { font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 600; color: var(--g800); }
+  .class-time-row { font-size: 12px; color: var(--g400); margin-top: 2px; }
+  .class-right { text-align: right; flex-shrink: 0; }
+  .spots-count { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 700; color: var(--p600); line-height: 1; }
+  .spots-count.low { color: var(--red); }
+  .spots-count.zero { color: var(--g400); }
+  .spots-label { font-size: 10px; color: var(--g400); text-transform: uppercase; letter-spacing: 0.05em; }
+  .dots { display: flex; gap: 3px; margin-top: 4px; justify-content: flex-end; }
+  .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--g200); }
+  .dot.on { background: var(--p500); }
+  .no-class { text-align: center; padding: 32px; color: var(--g400); font-size: 14px; }
   .form-panel { background: var(--w); border-radius: 16px; border: 1px solid var(--g200); padding: 24px 20px; position: sticky; top: 16px; }
   .form-title { font-family: 'Syne', sans-serif; font-size: 17px; font-weight: 700; margin-bottom: 16px; }
-  .selected-slot { background: var(--p50); border: 1.5px solid var(--p200); border-radius: 12px; padding: 14px 16px; margin-bottom: 18px; min-height: 58px; }
-  .selected-slot.empty { border-style: dashed; display: flex; align-items: center; justify-content: center; }
-  .selected-slot.empty p { font-size: 13px; color: var(--p400); text-align: center; line-height: 1.6; }
-  .slot-name { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; color: #4C1D95; }
-  .slot-meta { font-size: 12px; color: var(--p600); margin-top: 3px; }
+  .selected-corso { background: var(--p50); border: 1.5px solid var(--p200); border-radius: 12px; padding: 14px 16px; margin-bottom: 18px; min-height: 58px; }
+  .selected-corso.empty { border-style: dashed; display: flex; align-items: center; justify-content: center; }
+  .selected-corso.empty p { font-size: 13px; color: var(--p400); text-align: center; line-height: 1.6; }
+  .corso-name { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; color: #4C1D95; }
+  .corso-meta { font-size: 12px; color: var(--p600); margin-top: 3px; }
   .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
   .field { display: flex; flex-direction: column; gap: 5px; }
   label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: var(--g600); }
@@ -87,7 +92,7 @@
   .success-screen p { font-size: 14px; color: var(--g600); line-height: 1.6; }
   .btn-another { margin-top: 16px; padding: 14px 24px; border-radius: 10px; border: 1px solid #C4B5FD; background: transparent; color: var(--p600); font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; width: 100%; }
   .fab { display: none; position: fixed; bottom: 0; left: 0; right: 0; z-index: 100; padding: 10px 16px 28px; background: linear-gradient(to top, var(--g50) 60%, transparent); pointer-events: none; }
-  .fab button { width: 100%; padding: 17px; background: var(--p700); color: #fff; border: none; border-radius: 14px; font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 20px rgba(109,40,217,0.35); pointer-events: all; }
+  .fab button { width: 100%; padding: 17px; background: var(--p700); color: #fff; border: none; border-radius: 14px; font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 20px rgba(109,40,217,0.35); pointer-events: all; -webkit-tap-highlight-color: transparent; }
   footer { text-align: center; padding: 20px 16px 36px; font-size: 12px; color: var(--g400); }
   @media (max-width: 720px) {
     .main { grid-template-columns: 1fr; padding: 16px 12px 110px; gap: 14px; }
@@ -95,7 +100,10 @@
     .form-panel { order: 2; position: static; }
     .field-row { grid-template-columns: 1fr; }
     .fab { display: block; }
-    .slots-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .class-row { min-height: 74px; }
+    .class-name-row { font-size: 15px; }
+    .class-time-row { font-size: 13px; }
+    .spots-count { font-size: 22px; }
   }
   @media (min-width: 721px) and (max-width: 960px) {
     .main { grid-template-columns: 1fr; padding: 20px 20px 60px; }
@@ -110,12 +118,11 @@
       <div class="hero-logo">Anytime Fitness · Roma EUR</div>
       <div class="hero-badge-top">11–16 Maggio</div>
     </div>
-    <h1>Prova <span>la Palestra</span></h1>
-    <p class="hero-sub">Accesso libero agli attrezzi durante la Open Week. Solo 2 persone per fascia oraria.</p>
+    <h1>Open <span>Week</span></h1>
+    <p class="hero-sub">Prova i nostri corsi gratuitamente. Solo 7 posti disponibili per corso.</p>
     <div class="hero-chips">
       <div class="chip">Ingresso gratuito</div>
-      <div class="chip">2 posti per ora</div>
-      <div class="chip">10:00 – 18:00</div>
+      <div class="chip">7 posti per corso</div>
     </div>
   </div>
 </div>
@@ -123,20 +130,18 @@
 <div class="main">
   <div class="panel">
     <div class="panel-header">
-      <h2>Scegli giorno e orario</h2>
-      <p>Tocca una fascia oraria, poi compila il modulo</p>
+      <h2>Scegli il corso</h2>
+      <p>Tocca un corso, poi compila il modulo</p>
     </div>
     <div class="day-tabs" id="dayTabs"></div>
-    <div class="slots-wrap">
-      <div class="slots-grid" id="slotsGrid"></div>
-    </div>
+    <div class="classes-wrap" id="classesWrap"></div>
   </div>
 
   <div class="form-panel" id="formPanel">
     <div id="formContent">
       <div class="form-title">La tua prenotazione</div>
-      <div class="selected-slot empty" id="selectedSlotEl">
-        <p>Seleziona prima un orario<br>dal calendario ↑</p>
+      <div class="selected-corso empty" id="selectedCorso">
+        <p>Seleziona prima un corso<br>dal calendario ↑</p>
       </div>
       <div class="field-row">
         <div class="field">
@@ -172,25 +177,25 @@
           <input type="text" id="f-socio" placeholder="Es. Laura Bianchi">
         </div>
       </div>
-      <button class="btn-submit" id="btnSubmit" onclick="submitBooking()">Prenota il tuo accesso</button>
+      <button class="btn-submit" id="btnSubmit" onclick="submitBooking()">Prenota il tuo posto</button>
       <div class="loading" id="loading">Invio in corso…</div>
     </div>
     <div class="success-screen" id="successScreen">
       <div class="success-icon">
         <svg viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
       </div>
-      <h3>Accesso confermato!</h3>
+      <h3>Prenotazione confermata!</h3>
       <p id="successMsg"></p>
       <div style="background:#FEF9C3;border:1px solid #FDE047;border-radius:10px;padding:12px 16px;margin:14px 0;text-align:left;">
         <p style="font-size:13px;color:#854D0E;margin:0;line-height:1.6;">📬 <strong>Controlla la cartella spam</strong> — a volte le email automatiche finiscono lì. Se la trovi nello spam, spostala in arrivo e salva il mittente tra i contatti così riceverai anche i reminder!</p>
       </div>
-      <button class="btn-another" onclick="resetForm()">Prenota un altro accesso</button>
+      <button class="btn-another" onclick="resetForm()">Prenota un altro corso</button>
     </div>
   </div>
 </div>
 
 <div class="fab" id="fab">
-  <button onclick="scrollToForm()">Prenota il tuo accesso →</button>
+  <button onclick="scrollToForm()">Prenota il tuo posto →</button>
 </div>
 
 <footer>
@@ -199,18 +204,55 @@
 
 <script>
   const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxAJ_yAR8WHA0NYZ4gne4uB4dvpJzrJauwp6gqT78AxhcuXeUtb_WganEilDjgfW5R0MA/exec';
-  const SPOTS = 2;
-  const HOURS = [10,11,12,13,14,15,16,17];
-  const days      = ['Lun 11','Mar 12','Mer 13','Gio 14','Ven 15','Sab 16'];
+  const SPOTS = 7;
+
+  const SCHEDULE = {
+    'Lun 11': [
+      { name: 'GAG', time: '13:00–13:45', intensity: 2 },
+      { name: 'Total Body', time: '14:00–14:45', intensity: 3 },
+      { name: 'GAG', time: '18:00–18:45', intensity: 2 },
+      { name: 'Total Body', time: '19:00–19:45', intensity: 3 },
+    ],
+    'Mar 12': [
+      { name: 'Pilates', time: '13:00–13:45', intensity: 2 },
+      { name: 'Pilates', time: '14:00–14:45', intensity: 2 },
+      { name: 'Pilates', time: '17:30–18:15', intensity: 2 },
+      { name: 'Functional Training', time: '18:30–19:15', intensity: 3 },
+    ],
+    'Mer 13': [
+      { name: 'GAG', time: '13:00–13:45', intensity: 2 },
+      { name: 'Total Body', time: '14:00–14:45', intensity: 3 },
+      { name: 'GAG', time: '18:00–18:45', intensity: 2 },
+      { name: 'Total Body', time: '19:00–19:45', intensity: 3 },
+    ],
+    'Gio 14': [
+      { name: 'Pilates', time: '13:00–13:45', intensity: 2 },
+      { name: 'Pilates', time: '14:00–14:45', intensity: 2 },
+      { name: 'ABS – Abdominal', time: '17:30–18:15', intensity: 2 },
+      { name: 'Functional Training', time: '18:30–19:15', intensity: 3 },
+    ],
+    'Ven 15': [
+      { name: 'Functional Training', time: '13:00–13:45', intensity: 3 },
+      { name: 'Total Body', time: '14:00–14:45', intensity: 3 },
+      { name: 'Pilates Core', time: '17:30–18:15', intensity: 2 },
+      { name: 'GAG', time: '18:30–19:15', intensity: 2 },
+    ],
+    'Sab 16': [
+      { name: 'Pilates Flow', time: '10:30–11:15', intensity: 2 },
+      { name: 'HYROX', time: '11:30–12:15', intensity: 3 },
+    ],
+  };
+
+  const days      = Object.keys(SCHEDULE);
   const dayLabels = ['Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato'];
   const dayNums   = [11,12,13,14,15,16];
-  let currentDay   = days[0];
-  let selectedSlot = null;
+  let currentDay  = days[0];
+  let selectedClass = null;
   let socioOn = false;
   const bookings = {};
-  days.forEach(d => { bookings[d] = {}; HOURS.forEach(h => bookings[d][h] = 0); });
+  days.forEach(d => bookings[d] = {});
 
-  function slotLabel(h) { return String(h).padStart(2,'0') + ':00 – ' + String(h+1).padStart(2,'0') + ':00'; }
+  function classKey(c, i) { return i + '_' + c.name + '_' + c.time; }
 
   function scrollToForm() {
     document.getElementById('formPanel').scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -223,44 +265,68 @@
       const t = document.createElement('div');
       t.className = 'day-tab' + (d === currentDay ? ' active' : '');
       t.innerHTML = '<span class="dn">' + dayLabels[i].slice(0,3) + '</span><span class="dd">' + dayNums[i] + '</span><span class="dm">mag</span>';
-      t.onclick = () => { currentDay = d; selectedSlot = null; updateSelectedSlot(); renderDays(); renderSlots(); };
+      t.onclick = () => { currentDay = d; selectedClass = null; updateSelectedCorso(); renderDays(); renderClasses(); };
       tabs.appendChild(t);
     });
   }
 
-  function renderSlots() {
-    const grid = document.getElementById('slotsGrid');
-    grid.innerHTML = '';
-    HOURS.forEach(h => {
-      const booked = bookings[currentDay][h] || 0;
-      const avail  = SPOTS - booked;
-      const isFull = avail <= 0;
-      const isLow  = avail === 1;
-      const isSel  = selectedSlot && selectedSlot.day === currentDay && selectedSlot.hour === h;
-      const card = document.createElement('div');
-      card.className = 'slot-card' + (isSel ? ' selected' : '') + (isFull ? ' full' : '');
-      const pipsHtml = Array.from({length: SPOTS}, (_, i) => '<div class="pip' + (i < booked ? ' taken' + (isLow ? ' low' : '') : '') + '"></div>').join('');
-      card.innerHTML = '<div class="slot-time">' + String(h).padStart(2,'0') + ':00</div><div class="slot-avail ' + (isFull ? 'zero' : isLow ? 'low' : 'ok') + '">' + (isFull ? 'Esaurito' : avail === 1 ? '1 posto' : avail + ' posti') + '</div><div class="slot-pip">' + pipsHtml + '</div>';
-      if (!isFull) {
-        card.onclick = () => {
-          selectedSlot = { day: currentDay, hour: h, label: slotLabel(h), dayLabel: dayLabels[days.indexOf(currentDay)], dayNum: dayNums[days.indexOf(currentDay)] };
-          updateSelectedSlot();
-          renderSlots();
-          if (window.innerWidth <= 720) setTimeout(scrollToForm, 100);
-        };
-      }
-      grid.appendChild(card);
+  function renderClasses() {
+    const wrap = document.getElementById('classesWrap');
+    const classes = SCHEDULE[currentDay];
+    wrap.innerHTML = '';
+    if (!classes || !classes.length) { wrap.innerHTML = '<div class="no-class">Nessun corso disponibile</div>'; return; }
+
+    const groups = {};
+    classes.forEach((c, i) => {
+      const hour = parseInt(c.time.split(':')[0]);
+      const slot = hour < 12 ? 'Mattina' : hour < 16 ? 'Pomeriggio' : 'Sera';
+      if (!groups[slot]) groups[slot] = [];
+      groups[slot].push({ ...c, idx: i });
+    });
+
+    ['Mattina','Pomeriggio','Sera'].forEach(slot => {
+      if (!groups[slot]) return;
+      const grp = document.createElement('div');
+      const lbl = document.createElement('div');
+      lbl.className = 'time-label';
+      lbl.textContent = slot;
+      grp.appendChild(lbl);
+
+      groups[slot].forEach(c => {
+        const key    = classKey(c, c.idx);
+        const booked = bookings[currentDay][key] || 0;
+        const avail  = SPOTS - booked;
+        const isFull = avail <= 0;
+        const isLow  = avail <= 2 && avail > 0;
+        const isSel  = selectedClass && selectedClass.day === currentDay && selectedClass.key === key;
+
+        const row = document.createElement('div');
+        row.className = 'class-row' + (isSel ? ' selected' : '') + (isFull ? ' full' : '');
+        const dotsHtml = [1,2,3].map(n => '<div class="dot' + (n <= c.intensity ? ' on' : '') + '"></div>').join('');
+        row.innerHTML = '<div class="class-color"></div><div class="class-info"><div class="class-name-row">' + c.name + '</div><div class="class-time-row">' + c.time + '</div></div><div class="class-right"><div class="spots-count' + (isFull ? ' zero' : isLow ? ' low' : '') + '">' + (isFull ? '–' : avail) + '</div><div class="spots-label">' + (isFull ? 'esaurito' : 'posti') + '</div><div class="dots">' + dotsHtml + '</div></div>';
+
+        if (!isFull) {
+          row.onclick = () => {
+            selectedClass = { day: currentDay, key, name: c.name, time: c.time, dayLabel: dayLabels[days.indexOf(currentDay)], dayNum: dayNums[days.indexOf(currentDay)] };
+            updateSelectedCorso();
+            renderClasses();
+            if (window.innerWidth <= 720) setTimeout(scrollToForm, 100);
+          };
+        }
+        grp.appendChild(row);
+      });
+      wrap.appendChild(grp);
     });
   }
 
-  function updateSelectedSlot() {
-    const el = document.getElementById('selectedSlotEl');
-    if (!selectedSlot) {
-      el.className = 'selected-slot empty';
-      el.innerHTML = '<p>Seleziona prima un orario<br>dal calendario ↑</p>';
+  function updateSelectedCorso() {
+    const el = document.getElementById('selectedCorso');
+    if (!selectedClass) {
+      el.className = 'selected-corso empty';
+      el.innerHTML = '<p>Seleziona prima un corso<br>dal calendario ↑</p>';
     } else {
-      el.className = 'selected-slot';
-      el.innerHTML = '<div class="slot-name">Prova libera in palestra</div><div class="slot-meta">' + selectedSlot.dayLabel + ' ' + selectedSlot.dayNum + ' maggio · ' + selectedSlot.label + '</div>';
+      el.className = 'selected-corso';
+      el.innerHTML = '<div class="corso-name">' + selectedClass.name + '</div><div class="corso-meta">' + selectedClass.dayLabel + ' ' + selectedClass.dayNum + ' maggio · ' + selectedClass.time + '</div>';
     }
   }
 
@@ -287,47 +353,59 @@
   }
 
   async function submitBooking() {
-    if (!selectedSlot) {
-      document.getElementById('selectedSlotEl').style.borderColor = '#DC2626';
+    if (!selectedClass) {
+      document.getElementById('selectedCorso').style.borderColor = '#DC2626';
       if (window.innerWidth <= 720) window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
     if (!validate()) return;
 
     const data = {
-      tipo:     'prova_palestra',
       nome:     document.getElementById('f-nome').value.trim(),
       cognome:  document.getElementById('f-cognome').value.trim(),
       email:    document.getElementById('f-email').value.trim(),
       telefono: document.getElementById('f-telefono').value.trim(),
       socio:    socioOn ? (document.getElementById('f-socio').value.trim() || '') : '',
-      corso:    'Prova libera in palestra',
-      giorno:   selectedSlot.dayLabel + ' ' + selectedSlot.dayNum + ' maggio',
-      orario:   selectedSlot.label,
+      corso:    selectedClass.name,
+      giorno:   selectedClass.dayLabel + ' ' + selectedClass.dayNum + ' maggio',
+      orario:   selectedClass.time,
     };
 
     document.getElementById('btnSubmit').disabled = true;
     document.getElementById('loading').style.display = 'block';
 
     try {
-      await fetch(APPS_SCRIPT_URL, {
+      const resp = await fetch(APPS_SCRIPT_URL, {
         method: 'POST',
-        mode: 'no-cors',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
+      const esito = await resp.json();
       document.getElementById('loading').style.display = 'none';
+
+      if (!esito.ok) {
+        document.getElementById('btnSubmit').disabled = false;
+        if (esito.error === 'POSTI_ESAURITI') {
+          await caricaConteggi();
+          alert('Spiacenti, i posti per questo corso sono esauriti. Scegli un altro corso.');
+        } else {
+          alert('Errore durante la prenotazione. Riprova.');
+        }
+        return;
+      }
     } catch(e) {
       document.getElementById('loading').style.display = 'none';
+      document.getElementById('btnSubmit').disabled = false;
+      alert('Errore di connessione. Riprova.');
+      return;
     }
 
-    bookings[selectedSlot.day][selectedSlot.hour] = (bookings[selectedSlot.day][selectedSlot.hour] || 0) + 1;
+    await caricaConteggi();
     document.getElementById('formContent').style.display = 'none';
     document.getElementById('fab').style.display = 'none';
     const s = document.getElementById('successScreen');
     s.style.display = 'block';
-    document.getElementById('successMsg').textContent = data.nome + ', ti aspettiamo il ' + data.giorno + ' dalle ' + data.orario + '. Controlla la tua email ' + data.email + ' — ti manderemo un reminder prima dell\'accesso!';
-    renderSlots();
+    document.getElementById('successMsg').textContent = data.nome + ', ti aspettiamo per ' + data.corso + ' ' + data.giorno + ' alle ' + data.orario + '. Controlla la tua email ' + data.email + ' — ti manderemo un promemoria 24h e 1h prima!';
   }
 
   function resetForm() {
@@ -339,42 +417,32 @@
     socioOn = false;
     document.getElementById('socioCheck').className = 'checkbox';
     document.getElementById('socioField').style.display = 'none';
-    selectedSlot = null;
-    updateSelectedSlot();
-    renderSlots();
+    selectedClass = null;
+    updateSelectedCorso();
+    renderClasses();
     if (window.innerWidth <= 720) window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  // Carica posti reali dal Google Sheet CSV all'avvio
+  // Carica posti reali dallo script
   async function caricaConteggi() {
     try {
-      const resp = await fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vRWXEXiMX3F2tg1yEiNFmlLfE1HAtg-tq0fT3eH4I5OCdj20uN1G9lJgEEYTSIOdTfPp9zuu8rbLqFW/pub?gid=282748574&single=true&output=csv', { cache: 'no-store' });
-      const csv  = await resp.text();
-      const counts = {};
-      csv.split('\n').slice(1).forEach(row => {
-        const cols = row.split(',');
-        if (cols.length >= 2 && cols[0].trim()) {
-          counts[cols[0].trim()] = parseInt(cols[1]) || 0;
-        }
-      });
+      const resp = await fetch(APPS_SCRIPT_URL + '?action=counts');
+      const counts = await resp.json();
       days.forEach(d => {
         const idx   = days.indexOf(d);
         const label = dayLabels[idx] + ' ' + dayNums[idx] + ' maggio';
-        HOURS.forEach(h => {
-          const sheetKey = 'Prova libera in palestra|' + label + '|' + slotLabel(h);
-          if (counts[sheetKey] !== undefined) {
-            bookings[d][h] = counts[sheetKey];
-          }
+        SCHEDULE[d].forEach((c, i) => {
+          const key      = classKey(c, i);
+          const sheetKey = c.name + '|' + label + '|' + c.time;
+          if (counts[sheetKey] !== undefined) bookings[d][key] = counts[sheetKey];
         });
       });
-      renderSlots();
-    } catch(e) {
-      console.log('Conteggi non disponibili:', e);
-    }
+      renderClasses();
+    } catch(e) { console.log('Conteggi non disponibili:', e); }
   }
 
   renderDays();
-  renderSlots();
+  renderClasses();
   caricaConteggi();
 </script>
 </body>
